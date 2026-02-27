@@ -115,54 +115,68 @@ export default function Photobooth() {
             })
         );
 
-        Promise.all(loadImages).then(images => {
+        const drawPhotos = (images: HTMLImageElement[]) => {
             ctx.filter = selectedFilter.value !== "none" ? selectedFilter.value : "none";
-
             images.forEach((img, index) => {
                 let dx: number, dy: number, dw: number, dh: number;
-
                 if (selectedLayout.id === "strip") {
                     dx = STRIP_PAD;
                     dy = STRIP_PAD + index * (STRIP_PHOTO_H + STRIP_GAP);
                     dw = STRIP_PHOTO_W;
                     dh = STRIP_PHOTO_H;
                 } else if (selectedLayout.id === "grid") {
-                    // Grid: 4 photos in 2×2, with 22px padding, 14px gap, footer at bottom
                     const padX = 22, padY = 22, gapX = 14, gapY = 14;
                     dw = (800 - padX * 2 - gapX) / 2;
                     dh = (600 - padY * 2 - gapY) / 2;
                     dx = padX + (index % 2) * (dw + gapX);
                     dy = padY + Math.floor(index / 2) * (dh + gapY);
                 } else {
-                    // Single: full width with padding for frame border (12px border + some clearance)
-                    dx = 20; dy = 20;
-                    dw = 760; dh = 560;
+                    dx = 20; dy = 20; dw = 760; dh = 560;
                 }
-
                 ctx.save();
-                // Mirror horizontally (because webcam screenshot is already mirrored via CSS)
                 ctx.translate(dx + dw, dy);
                 ctx.scale(-1, 1);
                 ctx.drawImage(img, 0, 0, dw, dh);
                 ctx.restore();
             });
-
             ctx.filter = "none";
+        };
 
-            const finishCapture = () => {
-                setCapturedImage(canvas.toDataURL("image/png"));
-            };
+        Promise.all(loadImages).then(images => {
+            const finish = () => setCapturedImage(canvas.toDataURL("image/png"));
 
-            if (selectedFrame.url) {
-                const frameImg = new Image();
-                frameImg.src = selectedFrame.url;
-                frameImg.onload = () => {
-                    ctx.drawImage(frameImg, 0, 0, canvasWidth, canvasHeight);
-                    finishCapture();
-                };
-            } else {
-                finishCapture();
+            if (!selectedFrame.url) {
+                // No frame — just draw photos and done
+                drawPhotos(images);
+                finish();
+                return;
             }
+
+            const frameImg = new Image();
+            frameImg.src = selectedFrame.url;
+            frameImg.onload = () => {
+                if (selectedLayout.id === "strip") {
+                    /*
+                     * Strip frames have an opaque background.
+                     * Correct compositing order:
+                     *   1. Frame first (provides bg, borders, footer)
+                     *   2. Photos on top (cover the frame bg inside each slot)
+                     */
+                    ctx.drawImage(frameImg, 0, 0, canvasWidth, canvasHeight);
+                    drawPhotos(images);
+                } else {
+                    /*
+                     * Single / Grid frames have transparent backgrounds (fill="none").
+                     * Correct compositing order:
+                     *   1. Photos first
+                     *   2. Frame SVG on top — transparent areas reveal photos,
+                     *      opaque footer band + borders render over the top
+                     */
+                    drawPhotos(images);
+                    ctx.drawImage(frameImg, 0, 0, canvasWidth, canvasHeight);
+                }
+                finish();
+            };
         });
     };
 
@@ -203,23 +217,57 @@ export default function Photobooth() {
     const SINGLE_SLOT = { left: "2.5%", top: "2.86%", width: "95%", height: "80%" };
 
     /*
-     * clip-path polygon(evenodd) for the frame-mount div:
-     * outer rect filled with frame bg color, inner rects punched out as transparent
-     * windows revealing the webcam below — one window per photo slot.
+     * Frame mount: absolute-positioned divs that cover ONLY the
+     * non-photo-slot border/gap areas, leaving slot windows fully
+     * transparent so the webcam at z-0 shows through perfectly.
+     *
+     * All positions are expressed as percentages of the 800×700 SVG canvas,
+     * which maps 1:1 to the viewfinder via object-fill rendering.
+     *
+     * Grid slot boundaries (% of 800w × 700h):
+     *   Slots left edge:  22/800 = 2.75%
+     *   Slots right edge: 778/800 = 97.25%
+     *   Slots top edge:   22/700 = 3.14%
+     *   Row-1 bottom:     294/700 = 42%
+     *   Gap between rows: 310/700 = 44.29%
+     *   Row-2 bottom:     582/700 = 83.14%
+     *   Photo area end:   600/700 = 85.71%
+     *   Center column:    408/800 = 51% start, 392/800 = 49% end
      */
-    const GRID_CLIP =
-        "polygon(evenodd, 0% 0%, 100% 0%, 100% 100%, 0% 100%, " +
-        "2.75% 3.14%, 2.75% 42%, 49% 42%, 49% 3.14%, " +
-        "51% 3.14%, 51% 42%, 97.25% 42%, 97.25% 3.14%, " +
-        "2.75% 44.29%, 2.75% 83.14%, 49% 83.14%, 49% 44.29%, " +
-        "51% 44.29%, 51% 83.14%, 97.25% 83.14%, 97.25% 44.29%)";
-    const SINGLE_CLIP =
-        "polygon(evenodd, 0% 0%, 100% 0%, 100% 100%, 0% 100%, " +
-        "2.5% 2.86%, 2.5% 82.86%, 97.5% 82.86%, 97.5% 2.86%)";
+    const frameMountBands = (fs: { bg: string }) => {
+        const c = fs.bg;   // shorthand for background color
+        if (selectedLayout.id === "grid") return [
+            // Top band (above all slots)
+            { top: "0%", left: "0%", width: "100%", height: "3.14%" },
+            // Left column
+            { top: "3.14%", left: "0%", width: "2.75%", height: "80%" },
+            // Right column
+            { top: "3.14%", left: "97.25%", width: "2.75%", height: "80%" },
+            // Vertical center divider (between col 1 and col 2)
+            { top: "3.14%", left: "49%", width: "2%", height: "80%" },
+            // Horizontal center divider (between row 1 and row 2)
+            { top: "42%", left: "2.75%", width: "94.5%", height: "2.29%" },
+            // Strip between bottom-of-slots and SVG footer
+            { top: "83.14%", left: "0%", width: "100%", height: "2.57%" },
+        ].map(s => ({ ...s, bg: c }));
+
+        if (selectedLayout.id === "single") return [
+            // Top band
+            { top: "0%", left: "0%", width: "100%", height: "2.86%" },
+            // Left column
+            { top: "2.86%", left: "0%", width: "2.5%", height: "80%" },
+            // Right column
+            { top: "2.86%", left: "97.5%", width: "2.5%", height: "80%" },
+            // Strip between bottom-of-slot and SVG footer
+            { top: "82.86%", left: "0%", width: "100%", height: "2.86%" },
+        ].map(s => ({ ...s, bg: c }));
+
+        return [];
+    };
 
     const frameStyle = selectedFrame.url ? getFrameStyle(selectedFrame.id) : null;
     const viewfinderSlots = selectedLayout.id === "grid" ? GRID_SLOTS : selectedLayout.id === "single" ? [SINGLE_SLOT] : [];
-    const mountClip = selectedLayout.id === "grid" ? GRID_CLIP : selectedLayout.id === "single" ? SINGLE_CLIP : null;
+    const mountBands = frameStyle ? frameMountBands(frameStyle) : [];
 
     /* ─── Live Preview Sidebar helpers ─── */
 
@@ -246,7 +294,7 @@ export default function Photobooth() {
         return { left: 20 * (previewW / 800), top: 20 * (photoH / 600), w: previewW - 40 * (previewW / 800), h: photoH - 40 * (photoH / 600) };
     };
 
-    const PREVIEW_W = 180;
+    const PREVIEW_W = 200;
 
     const previewHeight = selectedLayout.id === "strip"
         ? Math.round(PREVIEW_W * (STRIP_H / STRIP_W))
@@ -261,142 +309,139 @@ export default function Photobooth() {
                     <p className="font-sans text-foreground/60">Customize your shot with premium layouts, filters, and frames</p>
                 </div>
 
-                {/* ═══ Main workspace: camera + live preview sidebar ═══ */}
-                <div className="flex gap-6 w-full max-w-5xl items-start justify-center">
+                {/* ═══ Main workspace ═══ */}
+                <div className="flex gap-8 w-full max-w-5xl items-start justify-center">
 
-                    {/* Viewfinder Container */}
-                    <div
-                        className="relative flex-1 max-w-3xl aspect-[4/3] rounded-2xl overflow-hidden shadow-2xl ring-4 ring-petal dark:ring-zinc-800"
-                        style={{ background: frameStyle?.bg ?? undefined }}
-                    >
+                    {/*
+                     * ── Camera Panel ──
+                     * Clean full-frame camera view, zero frame overlays.
+                     * Premium Aura-branded container: gradient border, soft glow,
+                     * corner accents, and subtle vignette on the lens.
+                     */}
+                    <div className="relative flex-1 max-w-3xl">
 
-                        {/* Camera feed — z-0, always behind everything */}
-                        <Webcam
-                            audio={false}
-                            ref={webcamRef}
-                            screenshotFormat="image/jpeg"
-                            width={800}
-                            height={600}
-                            className="absolute inset-0 w-full h-full object-cover scale-x-[-1] z-0"
-                            videoConstraints={{ width: 800, height: 600, facingMode: "user" }}
-                            style={{ filter: selectedFilter.value !== "none" ? selectedFilter.value : "none" }}
-                        />
+                        {/* Gradient border wrapper */}
+                        <div
+                            className="p-[3px] rounded-[22px]"
+                            style={{
+                                background: "linear-gradient(135deg, #FF6B8B 0%, #FFB3C6 40%, #FFD4A0 70%, #FF6B8B 100%)",
+                                boxShadow: "0 0 40px rgba(255,107,139,0.25), 0 20px 60px rgba(255,107,139,0.12)",
+                            }}
+                        >
+                            {/* Inner camera surface */}
+                            <div className="relative aspect-[4/3] rounded-[20px] overflow-hidden bg-zinc-900">
 
-                        {/*
-                         * Frame Mount — z-5
-                         * Sits between webcam and SVG overlay.
-                         * Carries the frame's background color but is clip-path punched through
-                         * at every photo-slot position (evenodd rule), so the camera is visible
-                         * ONLY through those windows. Border/gap areas become frame-colored.
-                         * Not shown for strip (tall strip SVG is sidebar-only).
-                         */}
-                        {frameStyle && mountClip && (
-                            <div
-                                className="absolute inset-0 z-[5] pointer-events-none"
-                                style={{
-                                    background: frameStyle.bg,
-                                    clipPath: mountClip,
-                                }}
-                            />
-                        )}
+                                {/* Live webcam — always clean, full-frame */}
+                                <Webcam
+                                    audio={false}
+                                    ref={webcamRef}
+                                    screenshotFormat="image/jpeg"
+                                    width={800}
+                                    height={600}
+                                    className="absolute inset-0 w-full h-full object-cover scale-x-[-1] z-0"
+                                    videoConstraints={{ width: 800, height: 600, facingMode: "user" }}
+                                    style={{ filter: selectedFilter.value !== "none" ? selectedFilter.value : "none" }}
+                                />
 
-                        {/*
-                         * Slot inner-shadow windows — z-6
-                         * Transparent divs positioned exactly over each photo slot.
-                         * Box-shadow (inset) creates the premium "embedded" look:
-                         * a subtle dark vignette + thin accent ring inside each slot.
-                         * Not rendered for strip.
-                         */}
-                        {frameStyle && viewfinderSlots.map((slot, i) => (
+                                {/* Subtle lens vignette */}
+                                <div
+                                    className="absolute inset-0 z-[2] pointer-events-none rounded-[20px]"
+                                    style={{ boxShadow: "inset 0 0 60px rgba(0,0,0,0.35)" }}
+                                />
+
+                                {/* Layout guide lines (no frame selected) */}
+                                {selectedLayout.id === "grid" && !selectedFrame.url && (
+                                    <div className="absolute inset-0 z-[3] pointer-events-none">
+                                        <div className="absolute top-1/2 left-0 right-0 h-px bg-white/20" />
+                                        <div className="absolute left-1/2 top-0 bottom-0 w-px bg-white/20" />
+                                    </div>
+                                )}
+                                {selectedLayout.id === "strip" && !selectedFrame.url && (
+                                    <div className="absolute inset-0 z-[3] pointer-events-none flex flex-col justify-around py-[8%] px-[6%] gap-[3%]">
+                                        {[0, 1, 2, 3].map(i => (
+                                            <div key={i} className="flex-1 rounded-sm border border-white/15" />
+                                        ))}
+                                    </div>
+                                )}
+
+                                {/* Sequence Progress Indicator */}
+                                {selectedLayout.shots > 1 && isCapturing && (
+                                    <div className="absolute top-4 left-1/2 -translate-x-1/2 flex gap-2 z-20 bg-black/40 backdrop-blur-md px-4 py-2 rounded-full">
+                                        <span className="text-white text-sm font-medium mr-2">
+                                            Shot {Math.min(currentShotIndex + 1, selectedLayout.shots)}/{selectedLayout.shots}
+                                        </span>
+                                        {Array.from({ length: selectedLayout.shots }).map((_, i) => (
+                                            <div
+                                                key={i}
+                                                className={`w-3 h-3 rounded-full transition-colors ${i < capturedSequence.length ? "bg-accent" :
+                                                        i === currentShotIndex && countdown !== null ? "bg-white animate-pulse" :
+                                                            "bg-white/30"
+                                                    }`}
+                                            />
+                                        ))}
+                                    </div>
+                                )}
+
+                                {/* Countdown Overlay */}
+                                <AnimatePresence>
+                                    {countdown !== null && countdown > 0 && (
+                                        <motion.div
+                                            key={countdown}
+                                            initial={{ opacity: 0, scale: 0.5 }}
+                                            animate={{ opacity: 1, scale: 1 }}
+                                            exit={{ opacity: 0, scale: 1.5 }}
+                                            className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none"
+                                        >
+                                            <span className="text-8xl font-display font-bold text-white drop-shadow-2xl">{countdown}</span>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+
+                                {/* Flash Effect */}
+                                <AnimatePresence>
+                                    {countdown === 0 && (
+                                        <motion.div
+                                            key={`flash-${currentShotIndex}`}
+                                            initial={{ opacity: 1 }}
+                                            animate={{ opacity: 0 }}
+                                            transition={{ duration: 0.6 }}
+                                            className="absolute inset-0 bg-white z-30 pointer-events-none"
+                                        />
+                                    )}
+                                </AnimatePresence>
+
+                            </div>{/* /inner camera */}
+                        </div>{/* /gradient border wrapper */}
+
+                        {/* Corner accent dots */}
+                        {([
+                            "top-0 left-0", "top-0 right-0",
+                            "bottom-0 left-0", "bottom-0 right-0",
+                        ] as const).map((pos, i) => (
                             <div
                                 key={i}
-                                className="absolute pointer-events-none z-[6] rounded-[10px]"
-                                style={{
-                                    left: slot.left,
-                                    top: slot.top,
-                                    width: slot.width,
-                                    height: slot.height,
-                                    boxShadow: [
-                                        `inset 0 0 18px rgba(0,0,0,0.28)`,
-                                        `inset 0 0 0 1.5px ${frameStyle.accent}55`,
-                                    ].join(", "),
-                                }}
+                                className={`absolute ${pos} w-3 h-3 rounded-full bg-accent opacity-70 shadow-lg shadow-accent/50 -translate-x-[2px] -translate-y-[2px]`}
+                                style={{ ...(pos.includes("right") && { transform: "translate(2px,-2px)" }), ...(pos.includes("bottom") && { transform: `translate(${pos.includes("right") ? "2px" : "-2px"},2px)` }) }}
                             />
                         ))}
 
-                        {/*
-                         * Frame SVG Overlay — z-10
-                         * For single/grid: transparent SVG (no background fill) draws only
-                         * the outer border, corner accents, and footer band on top.
-                         * For strip: NOT rendered here — the strip sidebar handles frame display.
-                         */}
-                        {selectedFrame.url && selectedLayout.id !== "strip" && (
-                            <img
-                                src={selectedFrame.url}
-                                className="absolute inset-0 w-full h-full object-fill pointer-events-none z-10"
-                                alt="frame overlay"
-                            />
-                        )}
+                    </div>{/* /camera panel outer */}
 
-                        {/* Grid Overlay Guides (only when no frame selected) */}
-                        {selectedLayout.id === "grid" && !selectedFrame.url && (
-                            <div className="absolute inset-0 z-10 pointer-events-none">
-                                <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-white/30" />
-                                <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-white/30" />
-                            </div>
-                        )}
-
-                        {/* Sequence Progress Indicator */}
-                        {selectedLayout.shots > 1 && isCapturing && (
-                            <div className="absolute top-4 left-1/2 -translate-x-1/2 flex gap-2 z-20 bg-black/30 backdrop-blur-md px-4 py-2 rounded-full">
-                                <span className="text-white text-sm font-medium mr-2">
-                                    Shot {Math.min(currentShotIndex + 1, selectedLayout.shots)}/{selectedLayout.shots}
-                                </span>
-                                {Array.from({ length: selectedLayout.shots }).map((_, i) => (
-                                    <div
-                                        key={i}
-                                        className={`w-3 h-3 rounded-full transition-colors ${i < capturedSequence.length ? "bg-accent" : i === currentShotIndex && countdown !== null ? "bg-white animate-pulse" : "bg-white/30"
-                                            }`}
-                                    />
-                                ))}
-                            </div>
-                        )}
-
-                        {/* Countdown Overlay */}
-                        <AnimatePresence>
-                            {countdown !== null && countdown > 0 && (
-                                <motion.div
-                                    key={countdown}
-                                    initial={{ opacity: 0, scale: 0.5 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    exit={{ opacity: 0, scale: 1.5 }}
-                                    className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none"
-                                >
-                                    <span className="text-8xl font-display font-bold text-white drop-shadow-2xl">{countdown}</span>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-
-                        {/* Flash Effect */}
-                        <AnimatePresence>
-                            {countdown === 0 && (
-                                <motion.div
-                                    key={`flash-${currentShotIndex}`}
-                                    initial={{ opacity: 1 }}
-                                    animate={{ opacity: 0 }}
-                                    transition={{ duration: 0.6 }}
-                                    className="absolute inset-0 bg-white z-30 pointer-events-none"
-                                />
-                            )}
-                        </AnimatePresence>
-                    </div>
-
-                    {/* ═══ Live Frame Preview Sidebar — shown for ALL layouts ═══ */}
+                    {/* ═══ Live Frame Preview Sidebar — always visible, all layouts ═══ */}
                     <motion.div
                         layout
-                        className="hidden md:flex flex-col items-center shrink-0"
+                        className="hidden md:flex flex-col items-center shrink-0 gap-3"
                         style={{ width: PREVIEW_W }}
                     >
+                        {/* Sidebar card header */}
+                        <div className="w-full flex items-center justify-between px-1">
+                            <span className="text-xs font-sans font-semibold text-foreground/50 uppercase tracking-wider">
+                                {selectedLayout.id === "strip" ? "Strip" : selectedLayout.id === "grid" ? "Grid" : "Single"} Preview
+                            </span>
+                            {isCapturing && (
+                                <span className="text-[10px] font-sans text-accent font-medium animate-pulse">● REC</span>
+                            )}
+                        </div>
                         <div
                             className="relative bg-white rounded-xl shadow-xl overflow-hidden border-2 border-zinc-200"
                             style={{ width: PREVIEW_W, height: previewHeight }}
