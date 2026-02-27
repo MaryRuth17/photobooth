@@ -8,66 +8,226 @@ export const FILTERS = [
 ];
 
 /* ════════════════════════════════════════════
-   Single-Frame Frames (800×600)
-   — thick borders, decorative corners, footer
+   Single-Frame Frames (800×700)
+   Photo area: 800×600 (y=0..600), Footer: y=600..700
+   SVG backgrounds are TRANSPARENT (fill="none") so the
+   webcam / photo shows through — only borders & footer band visible.
    ════════════════════════════════════════════ */
 export const FRAMES = [
     { id: "none", name: "No Frame", url: null },
     {
         id: "s_blush_ornate", name: "Blush Ornate",
-        url: `data:image/svg+xml;charset=utf-8,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="800" height="700"><rect width="800" height="700" fill="#FDF1F4" rx="12"/><rect x="30" y="30" width="740" height="520" rx="10" fill="none" stroke="#FF6B8B" stroke-width="4"/><rect x="20" y="20" width="760" height="540" rx="14" fill="none" stroke="#F4D1D6" stroke-width="10"/><circle cx="30" cy="30" r="8" fill="#FF6B8B" opacity=".6"/><circle cx="770" cy="30" r="8" fill="#FF6B8B" opacity=".6"/><circle cx="30" cy="550" r="8" fill="#FF6B8B" opacity=".6"/><circle cx="770" cy="550" r="8" fill="#FF6B8B" opacity=".6"/><line x1="100" y1="630" x2="700" y2="630" stroke="#F4D1D6" stroke-width="2"/><text x="400" y="670" font-family="serif" font-size="26" font-style="italic" text-anchor="middle" fill="#FF6B8B" opacity=".8">Your Moment</text></svg>')}`,
+        url: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
+            `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="700">` +
+            // Transparent background
+            `<rect width="800" height="700" fill="none"/>` +
+            // Outer thick border (photo region only)
+            `<rect x="8" y="8" width="784" height="584" rx="16" fill="none" stroke="#FF6B8B" stroke-width="12"/>` +
+            // Inner thin border
+            `<rect x="22" y="22" width="756" height="556" rx="10" fill="none" stroke="#F4D1D6" stroke-width="4"/>` +
+            // Corner accents
+            `<circle cx="16" cy="16" r="10" fill="#FF6B8B" opacity=".6"/>` +
+            `<circle cx="784" cy="16" r="10" fill="#FF6B8B" opacity=".6"/>` +
+            `<circle cx="16" cy="592" r="10" fill="#FF6B8B" opacity=".6"/>` +
+            `<circle cx="784" cy="592" r="10" fill="#FF6B8B" opacity=".6"/>` +
+            // Footer band (semi-transparent)
+            `<rect x="0" y="600" width="800" height="100" fill="#FDF1F4" rx="0"/>` +
+            `<line x1="80" y1="615" x2="720" y2="615" stroke="#F4D1D6" stroke-width="2"/>` +
+            `<text x="400" y="665" font-family="serif" font-size="28" font-style="italic" text-anchor="middle" fill="#FF6B8B" opacity=".9">Your Aura Moment</text>` +
+            `</svg>`
+        )}`,
     },
     {
         id: "s_gold_elegance", name: "Gold Elegance",
-        url: `data:image/svg+xml;charset=utf-8,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="800" height="700"><rect width="800" height="700" fill="#FFFDF7" rx="8"/><rect x="25" y="25" width="750" height="530" rx="8" fill="none" stroke="#D4A574" stroke-width="8"/><rect x="40" y="40" width="720" height="500" rx="4" fill="none" stroke="#D4A574" stroke-width="2" stroke-dasharray="8 4"/><path d="M25 25 L70 25 L25 70Z" fill="#D4A574" opacity=".3"/><path d="M775 25 L730 25 L775 70Z" fill="#D4A574" opacity=".3"/><path d="M25 555 L70 555 L25 510Z" fill="#D4A574" opacity=".3"/><path d="M775 555 L730 555 L775 510Z" fill="#D4A574" opacity=".3"/><text x="400" y="660" font-family="serif" font-size="24" text-anchor="middle" fill="#D4A574">✦ Aura Moments ✦</text></svg>')}`,
+        url: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
+            `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="700">` +
+            `<rect width="800" height="700" fill="none"/>` +
+            `<rect x="8" y="8" width="784" height="584" rx="12" fill="none" stroke="#D4A574" stroke-width="12"/>` +
+            `<rect x="28" y="28" width="744" height="544" rx="6" fill="none" stroke="#D4A574" stroke-width="2" stroke-dasharray="10 5"/>` +
+            `<path d="M8 8 L58 8 L8 58Z" fill="#D4A574" opacity=".35"/>` +
+            `<path d="M792 8 L742 8 L792 58Z" fill="#D4A574" opacity=".35"/>` +
+            `<path d="M8 592 L58 592 L8 542Z" fill="#D4A574" opacity=".35"/>` +
+            `<path d="M792 592 L742 592 L792 542Z" fill="#D4A574" opacity=".35"/>` +
+            `<rect x="0" y="600" width="800" height="100" fill="#FFFDF7"/>` +
+            `<line x1="60" y1="616" x2="740" y2="616" stroke="#D4A574" stroke-width="1.5"/>` +
+            `<text x="400" y="663" font-family="serif" font-size="26" text-anchor="middle" fill="#D4A574">✦ Aura Moments ✦</text>` +
+            `<line x1="60" y1="682" x2="740" y2="682" stroke="#D4A574" stroke-width="1.5"/>` +
+            `</svg>`
+        )}`,
     },
     {
         id: "s_polaroid_xl", name: "Polaroid",
-        url: `data:image/svg+xml;charset=utf-8,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="800" height="700"><rect width="800" height="700" fill="#ffffff" rx="6"/><rect x="40" y="30" width="720" height="510" rx="4" fill="none" stroke="#f0f0f0" stroke-width="2"/><text x="400" y="640" font-family="serif" font-size="36" font-style="italic" text-anchor="middle" fill="#FF6B8B">Aura Moments</text><text x="400" y="675" font-family="sans-serif" font-size="14" text-anchor="middle" fill="#ccc">photobooth</text></svg>')}`,
+        url: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
+            `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="700">` +
+            `<rect width="800" height="700" fill="none"/>` +
+            `<rect x="12" y="12" width="776" height="576" rx="6" fill="none" stroke="#e8e8e8" stroke-width="14"/>` +
+            `<rect x="28" y="28" width="744" height="544" rx="4" fill="none" stroke="#f0f0f0" stroke-width="3"/>` +
+            `<rect x="0" y="600" width="800" height="100" fill="#ffffff"/>` +
+            `<text x="400" y="655" font-family="serif" font-size="38" font-style="italic" text-anchor="middle" fill="#FF6B8B">Aura Moments</text>` +
+            `<text x="400" y="685" font-family="sans-serif" font-size="14" text-anchor="middle" fill="#ccc">photobooth</text>` +
+            `</svg>`
+        )}`,
     },
     {
         id: "s_watercolor", name: "Watercolor",
-        url: `data:image/svg+xml;charset=utf-8,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="800" height="700"><rect width="800" height="700" fill="#F0F4F8" rx="12"/><rect x="35" y="30" width="730" height="520" rx="10" fill="none" stroke="#B8D4E3" stroke-width="6"/><circle cx="60" cy="55" r="30" fill="#B8D4E3" opacity=".15"/><circle cx="740" cy="55" r="25" fill="#D4A574" opacity=".12"/><circle cx="750" cy="540" r="35" fill="#B8D4E3" opacity=".12"/><circle cx="50" cy="530" r="20" fill="#D4A574" opacity=".1"/><text x="400" y="640" font-family="serif" font-size="22" text-anchor="middle" fill="#8BA4B5" opacity=".8">captured with love</text></svg>')}`,
+        url: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
+            `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="700">` +
+            `<rect width="800" height="700" fill="none"/>` +
+            `<rect x="8" y="8" width="784" height="584" rx="16" fill="none" stroke="#B8D4E3" stroke-width="12"/>` +
+            `<rect x="24" y="24" width="752" height="552" rx="10" fill="none" stroke="#B8D4E3" stroke-width="3" stroke-dasharray="8 5"/>` +
+            `<circle cx="45" cy="45" r="36" fill="#B8D4E3" opacity=".18"/>` +
+            `<circle cx="755" cy="45" r="28" fill="#D4A574" opacity=".14"/>` +
+            `<circle cx="762" cy="568" r="40" fill="#B8D4E3" opacity=".14"/>` +
+            `<circle cx="38" cy="558" r="24" fill="#D4A574" opacity=".12"/>` +
+            `<rect x="0" y="600" width="800" height="100" fill="#F0F4F8"/>` +
+            `<text x="400" y="658" font-family="serif" font-size="24" text-anchor="middle" fill="#8BA4B5" opacity=".9">captured with love</text>` +
+            `</svg>`
+        )}`,
     },
     {
         id: "s_vintage_lace", name: "Vintage Lace",
-        url: `data:image/svg+xml;charset=utf-8,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="800" height="700"><rect width="800" height="700" fill="#FFF8F0" rx="10"/><rect x="28" y="28" width="744" height="524" rx="12" fill="none" stroke="#E8D5C4" stroke-width="10"/><rect x="42" y="42" width="716" height="496" rx="8" fill="none" stroke="#E8D5C4" stroke-width="2" stroke-dasharray="6 4"/><circle cx="28" cy="28" r="14" fill="none" stroke="#E8D5C4" stroke-width="3"/><circle cx="772" cy="28" r="14" fill="none" stroke="#E8D5C4" stroke-width="3"/><circle cx="28" cy="552" r="14" fill="none" stroke="#E8D5C4" stroke-width="3"/><circle cx="772" cy="552" r="14" fill="none" stroke="#E8D5C4" stroke-width="3"/><text x="400" y="650" font-family="serif" font-size="22" font-style="italic" text-anchor="middle" fill="#C4A882">♡ memories ♡</text></svg>')}`,
+        url: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
+            `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="700">` +
+            `<rect width="800" height="700" fill="none"/>` +
+            `<rect x="8" y="8" width="784" height="584" rx="16" fill="none" stroke="#E8D5C4" stroke-width="12"/>` +
+            `<rect x="26" y="26" width="748" height="548" rx="10" fill="none" stroke="#E8D5C4" stroke-width="3" stroke-dasharray="6 4"/>` +
+            `<circle cx="20" cy="20" r="16" fill="none" stroke="#E8D5C4" stroke-width="3"/>` +
+            `<circle cx="780" cy="20" r="16" fill="none" stroke="#E8D5C4" stroke-width="3"/>` +
+            `<circle cx="20" cy="580" r="16" fill="none" stroke="#E8D5C4" stroke-width="3"/>` +
+            `<circle cx="780" cy="580" r="16" fill="none" stroke="#E8D5C4" stroke-width="3"/>` +
+            `<rect x="0" y="600" width="800" height="100" fill="#FFF8F0"/>` +
+            `<text x="400" y="660" font-family="serif" font-size="26" font-style="italic" text-anchor="middle" fill="#C4A882">♡ sweet memories ♡</text>` +
+            `</svg>`
+        )}`,
     },
 ];
 
 /* ════════════════════════════════════════════
    2×2 Grid Frames (800×700, with footer)
+   Photo grid: 800×600, Footer: 600..700
+   Transparent background — only borders & footer band visible.
    ════════════════════════════════════════════ */
 export const GRID_FRAMES = [
     { id: "none", name: "No Frame", url: null },
     {
         id: "g_thick_blush", name: "Blush Ornate",
-        url: `data:image/svg+xml;charset=utf-8,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="800" height="700"><rect width="800" height="700" fill="#FDF1F4" rx="12"/><rect x="25" y="25" width="355" height="265" rx="10" fill="none" stroke="#FF6B8B" stroke-width="4"/><rect x="420" y="25" width="355" height="265" rx="10" fill="none" stroke="#FF6B8B" stroke-width="4"/><rect x="25" y="310" width="355" height="265" rx="10" fill="none" stroke="#FF6B8B" stroke-width="4"/><rect x="420" y="310" width="355" height="265" rx="10" fill="none" stroke="#FF6B8B" stroke-width="4"/><circle cx="15" cy="15" r="8" fill="#FF6B8B" opacity=".5"/><circle cx="785" cy="15" r="8" fill="#FF6B8B" opacity=".5"/><circle cx="15" cy="585" r="8" fill="#FF6B8B" opacity=".5"/><circle cx="785" cy="585" r="8" fill="#FF6B8B" opacity=".5"/><text x="400" y="660" font-family="serif" font-size="24" font-style="italic" text-anchor="middle" fill="#FF6B8B" opacity=".8">Your Aura Moment</text></svg>')}`,
+        url: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
+            `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="700">` +
+            `<rect width="800" height="700" fill="none"/>` +
+            // Outer full-grid border
+            `<rect x="8" y="8" width="784" height="584" rx="16" fill="none" stroke="#FF6B8B" stroke-width="10"/>` +
+            // Cell borders (2x2 grid within 800x600, 25px padding, 10px gap)
+            `<rect x="22" y="22" width="370" height="272" rx="10" fill="none" stroke="#FF6B8B" stroke-width="5"/>` +
+            `<rect x="408" y="22" width="370" height="272" rx="10" fill="none" stroke="#FF6B8B" stroke-width="5"/>` +
+            `<rect x="22" y="310" width="370" height="272" rx="10" fill="none" stroke="#FF6B8B" stroke-width="5"/>` +
+            `<rect x="408" y="310" width="370" height="272" rx="10" fill="none" stroke="#FF6B8B" stroke-width="5"/>` +
+            // Corner accents
+            `<circle cx="14" cy="14" r="10" fill="#FF6B8B" opacity=".6"/>` +
+            `<circle cx="786" cy="14" r="10" fill="#FF6B8B" opacity=".6"/>` +
+            `<circle cx="14" cy="590" r="10" fill="#FF6B8B" opacity=".6"/>` +
+            `<circle cx="786" cy="590" r="10" fill="#FF6B8B" opacity=".6"/>` +
+            // Footer band
+            `<rect x="0" y="600" width="800" height="100" fill="#FDF1F4"/>` +
+            `<line x1="80" y1="615" x2="720" y2="615" stroke="#F4D1D6" stroke-width="2"/>` +
+            `<text x="400" y="665" font-family="serif" font-size="28" font-style="italic" text-anchor="middle" fill="#FF6B8B" opacity=".9">Your Aura Moment</text>` +
+            `</svg>`
+        )}`,
     },
     {
         id: "g_gold", name: "Gold Elegance",
-        url: `data:image/svg+xml;charset=utf-8,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="800" height="700"><rect width="800" height="700" fill="#FFFDF7" rx="8"/><rect x="25" y="25" width="355" height="265" rx="8" fill="none" stroke="#D4A574" stroke-width="5"/><rect x="420" y="25" width="355" height="265" rx="8" fill="none" stroke="#D4A574" stroke-width="5"/><rect x="25" y="310" width="355" height="265" rx="8" fill="none" stroke="#D4A574" stroke-width="5"/><rect x="420" y="310" width="355" height="265" rx="8" fill="none" stroke="#D4A574" stroke-width="5"/><path d="M0 0 L50 0 L0 50Z" fill="#D4A574" opacity=".2"/><path d="M800 0 L750 0 L800 50Z" fill="#D4A574" opacity=".2"/><path d="M0 700 L50 700 L0 650Z" fill="#D4A574" opacity=".2"/><path d="M800 700 L750 700 L800 650Z" fill="#D4A574" opacity=".2"/><text x="400" y="660" font-family="serif" font-size="22" text-anchor="middle" fill="#D4A574">✦ Aura Moments ✦</text></svg>')}`,
+        url: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
+            `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="700">` +
+            `<rect width="800" height="700" fill="none"/>` +
+            `<rect x="8" y="8" width="784" height="584" rx="12" fill="none" stroke="#D4A574" stroke-width="10"/>` +
+            `<rect x="22" y="22" width="370" height="272" rx="8" fill="none" stroke="#D4A574" stroke-width="5"/>` +
+            `<rect x="408" y="22" width="370" height="272" rx="8" fill="none" stroke="#D4A574" stroke-width="5"/>` +
+            `<rect x="22" y="310" width="370" height="272" rx="8" fill="none" stroke="#D4A574" stroke-width="5"/>` +
+            `<rect x="408" y="310" width="370" height="272" rx="8" fill="none" stroke="#D4A574" stroke-width="5"/>` +
+            `<path d="M8 8 L55 8 L8 55Z" fill="#D4A574" opacity=".3"/>` +
+            `<path d="M792 8 L745 8 L792 55Z" fill="#D4A574" opacity=".3"/>` +
+            `<path d="M8 592 L55 592 L8 545Z" fill="#D4A574" opacity=".3"/>` +
+            `<path d="M792 592 L745 592 L792 545Z" fill="#D4A574" opacity=".3"/>` +
+            `<rect x="0" y="600" width="800" height="100" fill="#FFFDF7"/>` +
+            `<line x1="60" y1="616" x2="740" y2="616" stroke="#D4A574" stroke-width="1.5"/>` +
+            `<text x="400" y="663" font-family="serif" font-size="26" text-anchor="middle" fill="#D4A574">✦ Aura Moments ✦</text>` +
+            `<line x1="60" y1="682" x2="740" y2="682" stroke="#D4A574" stroke-width="1.5"/>` +
+            `</svg>`
+        )}`,
     },
     {
         id: "g_watercolor", name: "Watercolor",
-        url: `data:image/svg+xml;charset=utf-8,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="800" height="700"><rect width="800" height="700" fill="#F0F4F8" rx="12"/><rect x="25" y="25" width="355" height="265" rx="12" fill="none" stroke="#B8D4E3" stroke-width="5"/><rect x="420" y="25" width="355" height="265" rx="12" fill="none" stroke="#B8D4E3" stroke-width="5"/><rect x="25" y="310" width="355" height="265" rx="12" fill="none" stroke="#B8D4E3" stroke-width="5"/><rect x="420" y="310" width="355" height="265" rx="12" fill="none" stroke="#B8D4E3" stroke-width="5"/><circle cx="60" cy="60" r="40" fill="#B8D4E3" opacity=".1"/><circle cx="740" cy="640" r="50" fill="#B8D4E3" opacity=".1"/><circle cx="750" cy="50" r="30" fill="#D4A574" opacity=".08"/><text x="400" y="660" font-family="serif" font-size="22" text-anchor="middle" fill="#8BA4B5">captured with love</text></svg>')}`,
+        url: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
+            `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="700">` +
+            `<rect width="800" height="700" fill="none"/>` +
+            `<rect x="8" y="8" width="784" height="584" rx="16" fill="none" stroke="#B8D4E3" stroke-width="10"/>` +
+            `<rect x="22" y="22" width="370" height="272" rx="12" fill="none" stroke="#B8D4E3" stroke-width="5"/>` +
+            `<rect x="408" y="22" width="370" height="272" rx="12" fill="none" stroke="#B8D4E3" stroke-width="5"/>` +
+            `<rect x="22" y="310" width="370" height="272" rx="12" fill="none" stroke="#B8D4E3" stroke-width="5"/>` +
+            `<rect x="408" y="310" width="370" height="272" rx="12" fill="none" stroke="#B8D4E3" stroke-width="5"/>` +
+            `<circle cx="50" cy="50" r="45" fill="#B8D4E3" opacity=".1"/>` +
+            `<circle cx="750" cy="565" r="55" fill="#B8D4E3" opacity=".1"/>` +
+            `<circle cx="762" cy="40" r="32" fill="#D4A574" opacity=".08"/>` +
+            `<rect x="0" y="600" width="800" height="100" fill="#F0F4F8"/>` +
+            `<text x="400" y="658" font-family="serif" font-size="24" text-anchor="middle" fill="#8BA4B5">captured with love</text>` +
+            `</svg>`
+        )}`,
     },
     {
         id: "g_polaroid", name: "Polaroid Grid",
-        url: `data:image/svg+xml;charset=utf-8,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="800" height="700"><rect width="800" height="700" fill="#fff" rx="4"/><rect x="20" y="20" width="365" height="270" rx="4" fill="none" stroke="#eee" stroke-width="2"/><rect x="415" y="20" width="365" height="270" rx="4" fill="none" stroke="#eee" stroke-width="2"/><rect x="20" y="310" width="365" height="270" rx="4" fill="none" stroke="#eee" stroke-width="2"/><rect x="415" y="310" width="365" height="270" rx="4" fill="none" stroke="#eee" stroke-width="2"/><text x="400" y="650" font-family="serif" font-size="32" font-style="italic" text-anchor="middle" fill="#FF6B8B">Aura Grid</text><text x="400" y="680" font-family="sans-serif" font-size="13" text-anchor="middle" fill="#ccc">photobooth</text></svg>')}`,
+        url: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
+            `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="700">` +
+            `<rect width="800" height="700" fill="none"/>` +
+            `<rect x="10" y="10" width="780" height="580" rx="6" fill="none" stroke="#e0e0e0" stroke-width="14"/>` +
+            `<rect x="22" y="22" width="370" height="272" rx="4" fill="none" stroke="#ebebeb" stroke-width="3"/>` +
+            `<rect x="408" y="22" width="370" height="272" rx="4" fill="none" stroke="#ebebeb" stroke-width="3"/>` +
+            `<rect x="22" y="310" width="370" height="272" rx="4" fill="none" stroke="#ebebeb" stroke-width="3"/>` +
+            `<rect x="408" y="310" width="370" height="272" rx="4" fill="none" stroke="#ebebeb" stroke-width="3"/>` +
+            `<rect x="0" y="600" width="800" height="100" fill="#ffffff"/>` +
+            `<text x="400" y="655" font-family="serif" font-size="34" font-style="italic" text-anchor="middle" fill="#FF6B8B">Aura Grid</text>` +
+            `<text x="400" y="684" font-family="sans-serif" font-size="13" text-anchor="middle" fill="#ccc">photobooth</text>` +
+            `</svg>`
+        )}`,
     },
     {
         id: "g_hearts", name: "Heart Accents",
-        url: `data:image/svg+xml;charset=utf-8,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="800" height="700"><rect width="800" height="700" fill="#FFF5F7" rx="12"/><rect x="25" y="25" width="355" height="265" rx="10" fill="none" stroke="#FFB6C1" stroke-width="6"/><rect x="420" y="25" width="355" height="265" rx="10" fill="none" stroke="#FFB6C1" stroke-width="6"/><rect x="25" y="310" width="355" height="265" rx="10" fill="none" stroke="#FFB6C1" stroke-width="6"/><rect x="420" y="310" width="355" height="265" rx="10" fill="none" stroke="#FFB6C1" stroke-width="6"/><text x="400" y="300" font-size="24" text-anchor="middle" fill="#FF6B8B" opacity=".6">♥</text><text x="15" y="24" font-size="18" fill="#FFB6C1">♥</text><text x="778" y="24" font-size="18" fill="#FFB6C1">♥</text><text x="15" y="694" font-size="18" fill="#FFB6C1">♥</text><text x="778" y="694" font-size="18" fill="#FFB6C1">♥</text><text x="400" y="660" font-family="serif" font-size="24" font-style="italic" text-anchor="middle" fill="#FF6B8B">♡ with love ♡</text></svg>')}`,
+        url: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
+            `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="700">` +
+            `<rect width="800" height="700" fill="none"/>` +
+            `<rect x="8" y="8" width="784" height="584" rx="16" fill="none" stroke="#FFB6C1" stroke-width="10"/>` +
+            `<rect x="22" y="22" width="370" height="272" rx="10" fill="none" stroke="#FFB6C1" stroke-width="6"/>` +
+            `<rect x="408" y="22" width="370" height="272" rx="10" fill="none" stroke="#FFB6C1" stroke-width="6"/>` +
+            `<rect x="22" y="310" width="370" height="272" rx="10" fill="none" stroke="#FFB6C1" stroke-width="6"/>` +
+            `<rect x="408" y="310" width="370" height="272" rx="10" fill="none" stroke="#FFB6C1" stroke-width="6"/>` +
+            `<text x="400" y="302" font-size="20" text-anchor="middle" fill="#FF6B8B" opacity=".5">♥</text>` +
+            `<text x="12" y="20" font-size="18" fill="#FFB6C1">♥</text>` +
+            `<text x="778" y="20" font-size="18" fill="#FFB6C1">♥</text>` +
+            `<text x="12" y="596" font-size="18" fill="#FFB6C1">♥</text>` +
+            `<text x="778" y="596" font-size="18" fill="#FFB6C1">♥</text>` +
+            `<rect x="0" y="600" width="800" height="100" fill="#FFF5F7"/>` +
+            `<text x="400" y="662" font-family="serif" font-size="28" font-style="italic" text-anchor="middle" fill="#FF6B8B">♡ with love ♡</text>` +
+            `</svg>`
+        )}`,
     },
     {
         id: "g_lace", name: "Vintage Lace",
-        url: `data:image/svg+xml;charset=utf-8,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="800" height="700"><rect width="800" height="700" fill="#FFF8F0" rx="10"/><rect x="22" y="22" width="360" height="270" rx="10" fill="none" stroke="#E8D5C4" stroke-width="6"/><rect x="418" y="22" width="360" height="270" rx="10" fill="none" stroke="#E8D5C4" stroke-width="6"/><rect x="22" y="308" width="360" height="270" rx="10" fill="none" stroke="#E8D5C4" stroke-width="6"/><rect x="418" y="308" width="360" height="270" rx="10" fill="none" stroke="#E8D5C4" stroke-width="6"/><rect x="10" y="10" width="780" height="580" rx="14" fill="none" stroke="#E8D5C4" stroke-width="2" stroke-dasharray="6 4"/><text x="400" y="655" font-family="serif" font-size="20" font-style="italic" text-anchor="middle" fill="#C4A882">♡ sweet memories ♡</text></svg>')}`,
+        url: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
+            `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="700">` +
+            `<rect width="800" height="700" fill="none"/>` +
+            `<rect x="8" y="8" width="784" height="584" rx="16" fill="none" stroke="#E8D5C4" stroke-width="10"/>` +
+            `<rect x="22" y="22" width="370" height="272" rx="10" fill="none" stroke="#E8D5C4" stroke-width="6"/>` +
+            `<rect x="408" y="22" width="370" height="272" rx="10" fill="none" stroke="#E8D5C4" stroke-width="6"/>` +
+            `<rect x="22" y="310" width="370" height="272" rx="10" fill="none" stroke="#E8D5C4" stroke-width="6"/>` +
+            `<rect x="408" y="310" width="370" height="272" rx="10" fill="none" stroke="#E8D5C4" stroke-width="6"/>` +
+            `<rect x="12" y="12" width="776" height="576" rx="14" fill="none" stroke="#E8D5C4" stroke-width="2" stroke-dasharray="6 4"/>` +
+            `<rect x="0" y="600" width="800" height="100" fill="#FFF8F0"/>` +
+            `<text x="400" y="660" font-family="serif" font-size="24" font-style="italic" text-anchor="middle" fill="#C4A882">♡ sweet memories ♡</text>` +
+            `</svg>`
+        )}`,
     },
 ];
 
 /* ════════════════════════════════════════════════════
-   Vertical 4-Strip Frames (480×1600)
+   Vertical 4-Strip Frames (480×1310)
    — Inspired by physical photo strips: rounded photo
      cutouts, thick padding, watercolor/marble accents,
      footer area for branding
@@ -106,6 +266,8 @@ export const STRIP_FRAMES = [
         url: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
             `<svg xmlns="http://www.w3.org/2000/svg" width="${STRIP_W}" height="${STRIP_H}">` +
             `<rect width="${STRIP_W}" height="${STRIP_H}" fill="#FDF1F4" rx="14"/>` +
+            // Outer thick border
+            `<rect x="6" y="6" width="${STRIP_W - 12}" height="${STRIP_H - 12}" rx="12" fill="none" stroke="#FF6B8B" stroke-width="8"/>` +
             stripPhotoCutouts("#FF6B8B", 4, 10) +
             `<circle cx="16" cy="16" r="8" fill="#FF6B8B" opacity=".5"/>` +
             `<circle cx="${STRIP_W - 16}" cy="16" r="8" fill="#FF6B8B" opacity=".5"/>` +
@@ -121,7 +283,8 @@ export const STRIP_FRAMES = [
         url: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
             `<svg xmlns="http://www.w3.org/2000/svg" width="${STRIP_W}" height="${STRIP_H}">` +
             `<rect width="${STRIP_W}" height="${STRIP_H}" fill="#FFFDF7" rx="8"/>` +
-            `<rect x="8" y="8" width="${STRIP_W - 16}" height="${STRIP_H - 16}" rx="6" fill="none" stroke="#D4A574" stroke-width="2" stroke-dasharray="8 4"/>` +
+            `<rect x="6" y="6" width="${STRIP_W - 12}" height="${STRIP_H - 12}" rx="6" fill="none" stroke="#D4A574" stroke-width="8"/>` +
+            `<rect x="16" y="16" width="${STRIP_W - 32}" height="${STRIP_H - 32}" rx="4" fill="none" stroke="#D4A574" stroke-width="2" stroke-dasharray="8 4"/>` +
             stripPhotoCutouts("#D4A574", 5, 8) +
             `<path d="M0 0 L40 0 L0 40Z" fill="#D4A574" opacity=".2"/>` +
             `<path d="${STRIP_W} 0 L${STRIP_W - 40} 0 L${STRIP_W} 40Z" fill="#D4A574" opacity=".2"/>` +
@@ -136,6 +299,7 @@ export const STRIP_FRAMES = [
         url: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
             `<svg xmlns="http://www.w3.org/2000/svg" width="${STRIP_W}" height="${STRIP_H}">` +
             `<rect width="${STRIP_W}" height="${STRIP_H}" fill="#F0F4F8" rx="12"/>` +
+            `<rect x="6" y="6" width="${STRIP_W - 12}" height="${STRIP_H - 12}" rx="10" fill="none" stroke="#B8D4E3" stroke-width="8"/>` +
             `<circle cx="50" cy="50" r="50" fill="#B8D4E3" opacity=".12"/>` +
             `<circle cx="${STRIP_W - 40}" cy="${STRIP_H - 60}" r="60" fill="#B8D4E3" opacity=".12"/>` +
             `<circle cx="${STRIP_W - 30}" cy="40" r="30" fill="#D4A574" opacity=".08"/>` +
@@ -150,6 +314,7 @@ export const STRIP_FRAMES = [
         url: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
             `<svg xmlns="http://www.w3.org/2000/svg" width="${STRIP_W}" height="${STRIP_H}">` +
             `<rect width="${STRIP_W}" height="${STRIP_H}" fill="#1a1a1a" rx="6"/>` +
+            `<rect x="4" y="4" width="${STRIP_W - 8}" height="${STRIP_H - 8}" rx="4" fill="none" stroke="#444" stroke-width="4"/>` +
             `<line x1="0" y1="18" x2="${STRIP_W}" y2="18" stroke="#444" stroke-width="4" stroke-dasharray="14 10"/>` +
             `<line x1="0" y1="${STRIP_H - 18}" x2="${STRIP_W}" y2="${STRIP_H - 18}" stroke="#444" stroke-width="4" stroke-dasharray="14 10"/>` +
             stripPhotoCutouts("#555", 3, 4) +
@@ -162,12 +327,12 @@ export const STRIP_FRAMES = [
         url: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
             `<svg xmlns="http://www.w3.org/2000/svg" width="${STRIP_W}" height="${STRIP_H}">` +
             `<rect width="${STRIP_W}" height="${STRIP_H}" fill="#FFF5F7" rx="12"/>` +
+            `<rect x="6" y="6" width="${STRIP_W - 12}" height="${STRIP_H - 12}" rx="10" fill="none" stroke="#FFB6C1" stroke-width="8"/>` +
             stripPhotoCutouts("#FFB6C1", 5, 10) +
             `<text x="18" y="24" font-size="16" fill="#FFB6C1">♥</text>` +
             `<text x="${STRIP_W - 24}" y="24" font-size="16" fill="#FFB6C1">♥</text>` +
             `<text x="18" y="${STRIP_H - 12}" font-size="16" fill="#FFB6C1">♥</text>` +
             `<text x="${STRIP_W - 24}" y="${STRIP_H - 12}" font-size="16" fill="#FFB6C1">♥</text>` +
-            // Hearts between photo slots
             [0, 1, 2].map(i => `<text x="${STRIP_W / 2}" y="${stripPhotoY(i) + STRIP_PHOTO_H + STRIP_GAP / 2 + 6}" font-size="14" text-anchor="middle" fill="#FF6B8B" opacity=".5">♥</text>`).join("") +
             `<text x="${STRIP_W / 2}" y="${STRIP_H - 30}" font-family="serif" font-size="22" font-style="italic" text-anchor="middle" fill="#FF6B8B">♡ with love ♡</text>` +
             `</svg>`
@@ -178,7 +343,8 @@ export const STRIP_FRAMES = [
         url: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
             `<svg xmlns="http://www.w3.org/2000/svg" width="${STRIP_W}" height="${STRIP_H}">` +
             `<rect width="${STRIP_W}" height="${STRIP_H}" fill="#FFF8F0" rx="10"/>` +
-            `<rect x="10" y="10" width="${STRIP_W - 20}" height="${STRIP_H - 20}" rx="8" fill="none" stroke="#E8D5C4" stroke-width="2" stroke-dasharray="6 4"/>` +
+            `<rect x="6" y="6" width="${STRIP_W - 12}" height="${STRIP_H - 12}" rx="8" fill="none" stroke="#E8D5C4" stroke-width="8"/>` +
+            `<rect x="16" y="16" width="${STRIP_W - 32}" height="${STRIP_H - 32}" rx="6" fill="none" stroke="#E8D5C4" stroke-width="2" stroke-dasharray="6 4"/>` +
             stripPhotoCutouts("#E8D5C4", 5, 10) +
             `<circle cx="${STRIP_PAD}" cy="${STRIP_PAD}" r="12" fill="none" stroke="#E8D5C4" stroke-width="2"/>` +
             `<circle cx="${STRIP_W - STRIP_PAD}" cy="${STRIP_PAD}" r="12" fill="none" stroke="#E8D5C4" stroke-width="2"/>` +
@@ -193,6 +359,7 @@ export const STRIP_FRAMES = [
         url: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
             `<svg xmlns="http://www.w3.org/2000/svg" width="${STRIP_W}" height="${STRIP_H}">` +
             `<rect width="${STRIP_W}" height="${STRIP_H}" fill="#fff" rx="4"/>` +
+            `<rect x="6" y="6" width="${STRIP_W - 12}" height="${STRIP_H - 12}" rx="4" fill="none" stroke="#e0e0e0" stroke-width="8"/>` +
             stripPhotoCutouts("#f0f0f0", 2, 4) +
             `<text x="${STRIP_W / 2}" y="${STRIP_H - 55}" font-family="serif" font-size="28" font-style="italic" text-anchor="middle" fill="#FF6B8B">Aura Booth</text>` +
             `<text x="${STRIP_W / 2}" y="${STRIP_H - 30}" font-family="sans-serif" font-size="13" text-anchor="middle" fill="#ccc">photobooth</text>` +

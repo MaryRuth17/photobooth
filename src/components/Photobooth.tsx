@@ -127,16 +127,16 @@ export default function Photobooth() {
                     dw = STRIP_PHOTO_W;
                     dh = STRIP_PHOTO_H;
                 } else if (selectedLayout.id === "grid") {
-                    // Grid: 4 photos in 2×2, with 25px padding, 10px gap, footer at bottom
-                    const padX = 25, padY = 25, gapX = 10, gapY = 20;
-                    dw = (800 - padX * 2 - gapX) / 2; // ~382.5
-                    dh = (600 - padY * 2 - gapY) / 2; // ~277.5
+                    // Grid: 4 photos in 2×2, with 22px padding, 14px gap, footer at bottom
+                    const padX = 22, padY = 22, gapX = 14, gapY = 14;
+                    dw = (800 - padX * 2 - gapX) / 2;
+                    dh = (600 - padY * 2 - gapY) / 2;
                     dx = padX + (index % 2) * (dw + gapX);
                     dy = padY + Math.floor(index / 2) * (dh + gapY);
                 } else {
-                    // Single: full width with padding for frame
-                    dx = 30; dy = 30;
-                    dw = 740; dh = 520;
+                    // Single: full width with padding for frame border (12px border + some clearance)
+                    dx = 20; dy = 20;
+                    dw = 760; dh = 560;
                 }
 
                 ctx.save();
@@ -177,6 +177,81 @@ export default function Photobooth() {
     /* ─── Strip photo Y-position helper (mirrors the constant) ─── */
     const stripPhotoY = (i: number) => STRIP_PAD + i * (STRIP_PHOTO_H + STRIP_GAP);
 
+    /* ─── Frame background color derived from frame id ─── */
+    const getFrameStyle = (id: string): { bg: string; accent: string } => {
+        if (id.includes("blush")) return { bg: "#FDF1F4", accent: "#FF6B8B" };
+        if (id.includes("gold")) return { bg: "#FFFDF7", accent: "#D4A574" };
+        if (id.includes("watercolor")) return { bg: "#F0F4F8", accent: "#B8D4E3" };
+        if (id.includes("lace")) return { bg: "#FFF8F0", accent: "#E8D5C4" };
+        if (id.includes("polaroid")) return { bg: "#ffffff", accent: "#e0e0e0" };
+        if (id.includes("hearts")) return { bg: "#FFF5F7", accent: "#FFB6C1" };
+        if (id.includes("film")) return { bg: "#1a1a1a", accent: "#555555" };
+        return { bg: "#FDF1F4", accent: "#FF6B8B" };
+    };
+
+    /*
+     * Slot positions expressed as % of the SVG canvas (800×700).
+     * The frame SVG is rendered object-fill into the viewfinder, so these %
+     * precisely match the frame's photo-slot cutout positions.
+     */
+    const GRID_SLOTS = [
+        { left: "2.75%", top: "3.14%", width: "46.25%", height: "38.86%" },
+        { left: "51%", top: "3.14%", width: "46.25%", height: "38.86%" },
+        { left: "2.75%", top: "44.29%", width: "46.25%", height: "38.86%" },
+        { left: "51%", top: "44.29%", width: "46.25%", height: "38.86%" },
+    ];
+    const SINGLE_SLOT = { left: "2.5%", top: "2.86%", width: "95%", height: "80%" };
+
+    /*
+     * clip-path polygon(evenodd) for the frame-mount div:
+     * outer rect filled with frame bg color, inner rects punched out as transparent
+     * windows revealing the webcam below — one window per photo slot.
+     */
+    const GRID_CLIP =
+        "polygon(evenodd, 0% 0%, 100% 0%, 100% 100%, 0% 100%, " +
+        "2.75% 3.14%, 2.75% 42%, 49% 42%, 49% 3.14%, " +
+        "51% 3.14%, 51% 42%, 97.25% 42%, 97.25% 3.14%, " +
+        "2.75% 44.29%, 2.75% 83.14%, 49% 83.14%, 49% 44.29%, " +
+        "51% 44.29%, 51% 83.14%, 97.25% 83.14%, 97.25% 44.29%)";
+    const SINGLE_CLIP =
+        "polygon(evenodd, 0% 0%, 100% 0%, 100% 100%, 0% 100%, " +
+        "2.5% 2.86%, 2.5% 82.86%, 97.5% 82.86%, 97.5% 2.86%)";
+
+    const frameStyle = selectedFrame.url ? getFrameStyle(selectedFrame.id) : null;
+    const viewfinderSlots = selectedLayout.id === "grid" ? GRID_SLOTS : selectedLayout.id === "single" ? [SINGLE_SLOT] : [];
+    const mountClip = selectedLayout.id === "grid" ? GRID_CLIP : selectedLayout.id === "single" ? SINGLE_CLIP : null;
+
+    /* ─── Live Preview Sidebar helpers ─── */
+
+    // For grid layout: photo slot positions (scaled to preview width)
+    const gridPreviewSlots = (previewW: number, previewH: number) => {
+        // Canvas is 800×700 (600 photo + 100 footer)
+        const scaleX = previewW / 800;
+        const scaleY = (previewH * (600 / 700)) / 600; // scale only photo region
+        const padX = 22 * scaleX, padY = 22 * scaleY;
+        const gapX = 14 * scaleX, gapY = 14 * scaleY;
+        const slotW = (previewW - padX * 2 - gapX) / 2;
+        const slotH = ((previewH * 600 / 700) - padY * 2 - gapY) / 2;
+        return [0, 1, 2, 3].map(i => ({
+            left: padX + (i % 2) * (slotW + gapX),
+            top: padY + Math.floor(i / 2) * (slotH + gapY),
+            w: slotW,
+            h: slotH,
+        }));
+    };
+
+    // Single layout: one slot
+    const singlePreviewSlot = (previewW: number, previewH: number) => {
+        const photoH = previewH * (600 / 700);
+        return { left: 20 * (previewW / 800), top: 20 * (photoH / 600), w: previewW - 40 * (previewW / 800), h: photoH - 40 * (photoH / 600) };
+    };
+
+    const PREVIEW_W = 180;
+
+    const previewHeight = selectedLayout.id === "strip"
+        ? Math.round(PREVIEW_W * (STRIP_H / STRIP_W))
+        : Math.round(PREVIEW_W * (700 / 800));
+
     return (
         <section id="booth" className="min-h-screen bg-white dark:bg-[#1A1A1A] py-20 px-4 flex flex-col items-center">
             <div className="max-w-5xl w-full flex flex-col items-center">
@@ -186,25 +261,76 @@ export default function Photobooth() {
                     <p className="font-sans text-foreground/60">Customize your shot with premium layouts, filters, and frames</p>
                 </div>
 
-                {/* ═══ Main workspace: camera + optional strip preview ═══ */}
+                {/* ═══ Main workspace: camera + live preview sidebar ═══ */}
                 <div className="flex gap-6 w-full max-w-5xl items-start justify-center">
 
                     {/* Viewfinder Container */}
-                    <div className="relative flex-1 max-w-3xl aspect-[4/3] bg-zinc-100 dark:bg-zinc-900 rounded-2xl overflow-hidden shadow-2xl ring-4 ring-petal dark:ring-zinc-800">
+                    <div
+                        className="relative flex-1 max-w-3xl aspect-[4/3] rounded-2xl overflow-hidden shadow-2xl ring-4 ring-petal dark:ring-zinc-800"
+                        style={{ background: frameStyle?.bg ?? undefined }}
+                    >
 
+                        {/* Camera feed — z-0, always behind everything */}
                         <Webcam
                             audio={false}
                             ref={webcamRef}
                             screenshotFormat="image/jpeg"
                             width={800}
                             height={600}
-                            className="w-full h-full object-cover scale-x-[-1]"
+                            className="absolute inset-0 w-full h-full object-cover scale-x-[-1] z-0"
                             videoConstraints={{ width: 800, height: 600, facingMode: "user" }}
                             style={{ filter: selectedFilter.value !== "none" ? selectedFilter.value : "none" }}
                         />
 
-                        {/* Frame Overlay (Live Preview) */}
-                        {selectedFrame.url && (
+                        {/*
+                         * Frame Mount — z-5
+                         * Sits between webcam and SVG overlay.
+                         * Carries the frame's background color but is clip-path punched through
+                         * at every photo-slot position (evenodd rule), so the camera is visible
+                         * ONLY through those windows. Border/gap areas become frame-colored.
+                         * Not shown for strip (tall strip SVG is sidebar-only).
+                         */}
+                        {frameStyle && mountClip && (
+                            <div
+                                className="absolute inset-0 z-[5] pointer-events-none"
+                                style={{
+                                    background: frameStyle.bg,
+                                    clipPath: mountClip,
+                                }}
+                            />
+                        )}
+
+                        {/*
+                         * Slot inner-shadow windows — z-6
+                         * Transparent divs positioned exactly over each photo slot.
+                         * Box-shadow (inset) creates the premium "embedded" look:
+                         * a subtle dark vignette + thin accent ring inside each slot.
+                         * Not rendered for strip.
+                         */}
+                        {frameStyle && viewfinderSlots.map((slot, i) => (
+                            <div
+                                key={i}
+                                className="absolute pointer-events-none z-[6] rounded-[10px]"
+                                style={{
+                                    left: slot.left,
+                                    top: slot.top,
+                                    width: slot.width,
+                                    height: slot.height,
+                                    boxShadow: [
+                                        `inset 0 0 18px rgba(0,0,0,0.28)`,
+                                        `inset 0 0 0 1.5px ${frameStyle.accent}55`,
+                                    ].join(", "),
+                                }}
+                            />
+                        ))}
+
+                        {/*
+                         * Frame SVG Overlay — z-10
+                         * For single/grid: transparent SVG (no background fill) draws only
+                         * the outer border, corner accents, and footer band on top.
+                         * For strip: NOT rendered here — the strip sidebar handles frame display.
+                         */}
+                        {selectedFrame.url && selectedLayout.id !== "strip" && (
                             <img
                                 src={selectedFrame.url}
                                 className="absolute inset-0 w-full h-full object-fill pointer-events-none z-10"
@@ -212,7 +338,7 @@ export default function Photobooth() {
                             />
                         )}
 
-                        {/* Grid Overlay Guides */}
+                        {/* Grid Overlay Guides (only when no frame selected) */}
                         {selectedLayout.id === "grid" && !selectedFrame.url && (
                             <div className="absolute inset-0 z-10 pointer-events-none">
                                 <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-white/30" />
@@ -265,65 +391,125 @@ export default function Photobooth() {
                         </AnimatePresence>
                     </div>
 
-                    {/* ═══ Real-time Strip Preview (only for strip layout during capture) ═══ */}
-                    {selectedLayout.id === "strip" && (
-                        <motion.div
-                            layout
-                            className="hidden md:flex flex-col items-center shrink-0"
-                            style={{ width: 180 }}
+                    {/* ═══ Live Frame Preview Sidebar — shown for ALL layouts ═══ */}
+                    <motion.div
+                        layout
+                        className="hidden md:flex flex-col items-center shrink-0"
+                        style={{ width: PREVIEW_W }}
+                    >
+                        <div
+                            className="relative bg-white rounded-xl shadow-xl overflow-hidden border-2 border-zinc-200"
+                            style={{ width: PREVIEW_W, height: previewHeight }}
                         >
-                            <div
-                                className="relative bg-white rounded-xl shadow-xl overflow-hidden border-2 border-zinc-200"
-                                style={{ width: 180, height: 180 * (STRIP_H / STRIP_W) }}
-                            >
-                                {/* Mini frame overlay */}
-                                {selectedFrame.url && (
-                                    <img
-                                        src={selectedFrame.url}
-                                        className="absolute inset-0 w-full h-full object-fill pointer-events-none z-10"
-                                        alt="strip frame"
-                                    />
-                                )}
+                            {/* Mini frame overlay — rendered first as background context */}
+                            {selectedFrame.url && (
+                                <img
+                                    src={selectedFrame.url}
+                                    className="absolute inset-0 w-full h-full object-fill pointer-events-none z-10"
+                                    alt="strip frame"
+                                />
+                            )}
 
-                                {/* Photo slots */}
-                                {[0, 1, 2, 3].map(i => {
-                                    const scale = 180 / STRIP_W;
-                                    const top = stripPhotoY(i) * scale;
-                                    const left = STRIP_PAD * scale;
-                                    const w = STRIP_PHOTO_W * scale;
-                                    const h = STRIP_PHOTO_H * scale;
-                                    const photoSrc = capturedSequence[i];
+                            {/* ── Strip layout slots ── */}
+                            {selectedLayout.id === "strip" && [0, 1, 2, 3].map(i => {
+                                const scale = PREVIEW_W / STRIP_W;
+                                const top = stripPhotoY(i) * scale;
+                                const left = STRIP_PAD * scale;
+                                const w = STRIP_PHOTO_W * scale;
+                                const h = STRIP_PHOTO_H * scale;
+                                const photoSrc = capturedSequence[i];
 
-                                    return (
-                                        <div
-                                            key={i}
-                                            className="absolute overflow-hidden rounded-sm"
-                                            style={{ top, left, width: w, height: h }}
-                                        >
-                                            {photoSrc ? (
-                                                <motion.img
-                                                    initial={{ opacity: 0, scale: 0.8 }}
-                                                    animate={{ opacity: 1, scale: 1 }}
-                                                    src={photoSrc}
-                                                    className="w-full h-full object-cover scale-x-[-1]"
-                                                    style={{ filter: selectedFilter.value !== "none" ? selectedFilter.value : "none" }}
-                                                    alt={`Shot ${i + 1}`}
-                                                />
-                                            ) : (
-                                                <div className={`w-full h-full flex items-center justify-center text-xs font-sans ${i === currentShotIndex && isCapturing
-                                                        ? "bg-accent/10 text-accent animate-pulse"
-                                                        : "bg-zinc-100 text-zinc-400"
-                                                    }`}>
-                                                    {i + 1}
-                                                </div>
-                                            )}
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                            <span className="text-xs text-foreground/50 mt-3 font-sans">Live Strip Preview</span>
-                        </motion.div>
-                    )}
+                                return (
+                                    <div
+                                        key={i}
+                                        className="absolute overflow-hidden rounded-sm"
+                                        style={{ top, left, width: w, height: h }}
+                                    >
+                                        {photoSrc ? (
+                                            <motion.img
+                                                initial={{ opacity: 0, scale: 0.8 }}
+                                                animate={{ opacity: 1, scale: 1 }}
+                                                src={photoSrc}
+                                                className="w-full h-full object-cover scale-x-[-1]"
+                                                style={{ filter: selectedFilter.value !== "none" ? selectedFilter.value : "none" }}
+                                                alt={`Shot ${i + 1}`}
+                                            />
+                                        ) : (
+                                            <div className={`w-full h-full flex items-center justify-center text-xs font-sans ${i === currentShotIndex && isCapturing
+                                                ? "bg-accent/10 text-accent animate-pulse"
+                                                : "bg-zinc-100 text-zinc-400"
+                                                }`}>
+                                                {i + 1}
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
+
+                            {/* ── Grid layout slots ── */}
+                            {selectedLayout.id === "grid" && gridPreviewSlots(PREVIEW_W, previewHeight).map((slot, i) => {
+                                const photoSrc = capturedSequence[i];
+                                return (
+                                    <div
+                                        key={i}
+                                        className="absolute overflow-hidden rounded-sm"
+                                        style={{ top: slot.top, left: slot.left, width: slot.w, height: slot.h }}
+                                    >
+                                        {photoSrc ? (
+                                            <motion.img
+                                                initial={{ opacity: 0, scale: 0.8 }}
+                                                animate={{ opacity: 1, scale: 1 }}
+                                                src={photoSrc}
+                                                className="w-full h-full object-cover scale-x-[-1]"
+                                                style={{ filter: selectedFilter.value !== "none" ? selectedFilter.value : "none" }}
+                                                alt={`Shot ${i + 1}`}
+                                            />
+                                        ) : (
+                                            <div className={`w-full h-full flex items-center justify-center text-xs font-sans ${i === currentShotIndex && isCapturing
+                                                ? "bg-accent/10 text-accent animate-pulse"
+                                                : "bg-zinc-100 text-zinc-400"
+                                                }`}>
+                                                {i + 1}
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
+
+                            {/* ── Single layout slot ── */}
+                            {selectedLayout.id === "single" && (() => {
+                                const slot = singlePreviewSlot(PREVIEW_W, previewHeight);
+                                const photoSrc = capturedSequence[0];
+                                return (
+                                    <div
+                                        className="absolute overflow-hidden rounded-sm"
+                                        style={{ top: slot.top, left: slot.left, width: slot.w, height: slot.h }}
+                                    >
+                                        {photoSrc ? (
+                                            <motion.img
+                                                initial={{ opacity: 0, scale: 0.8 }}
+                                                animate={{ opacity: 1, scale: 1 }}
+                                                src={photoSrc}
+                                                className="w-full h-full object-cover scale-x-[-1]"
+                                                style={{ filter: selectedFilter.value !== "none" ? selectedFilter.value : "none" }}
+                                                alt="Shot 1"
+                                            />
+                                        ) : (
+                                            <div className={`w-full h-full flex items-center justify-center text-xs font-sans ${isCapturing
+                                                ? "bg-accent/10 text-accent animate-pulse"
+                                                : "bg-zinc-100 text-zinc-400"
+                                                }`}>
+                                                1
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })()}
+                        </div>
+                        <span className="text-xs text-foreground/50 mt-3 font-sans">
+                            {selectedLayout.id === "strip" ? "Live Strip Preview" : selectedLayout.id === "grid" ? "Live Grid Preview" : "Live Preview"}
+                        </span>
+                    </motion.div>
                 </div>
 
                 {/* Hidden Canvas for Compositing */}
@@ -343,8 +529,8 @@ export default function Photobooth() {
                                 key={tab.key}
                                 onClick={() => setActiveTab(tab.key)}
                                 className={`flex-1 flex items-center justify-center gap-2 py-4 font-sans font-medium transition-colors ${activeTab === tab.key
-                                        ? "text-accent border-b-2 border-accent bg-accent/5"
-                                        : "text-foreground/60 hover:text-foreground hover:bg-zinc-50 dark:hover:bg-zinc-800"
+                                    ? "text-accent border-b-2 border-accent bg-accent/5"
+                                    : "text-foreground/60 hover:text-foreground hover:bg-zinc-50 dark:hover:bg-zinc-800"
                                     }`}
                             >
                                 {tab.icon} {tab.label}
@@ -361,8 +547,8 @@ export default function Photobooth() {
                                         key={layout.id}
                                         onClick={() => handleLayoutChange(layout)}
                                         className={`flex-1 flex flex-col items-center justify-center gap-2 rounded-2xl border-2 transition-all ${selectedLayout.id === layout.id
-                                                ? "border-accent bg-blush text-accent dark:bg-accent/10"
-                                                : "border-zinc-200 dark:border-zinc-700 hover:border-accent hover:bg-zinc-50 text-foreground dark:hover:bg-zinc-800"
+                                            ? "border-accent bg-blush text-accent dark:bg-accent/10"
+                                            : "border-zinc-200 dark:border-zinc-700 hover:border-accent hover:bg-zinc-50 text-foreground dark:hover:bg-zinc-800"
                                             }`}
                                     >
                                         <span className="font-sans font-medium">{layout.name}</span>
@@ -379,8 +565,8 @@ export default function Photobooth() {
                                         key={filter.id}
                                         onClick={() => setSelectedFilter(filter)}
                                         className={`snap-center shrink-0 px-6 py-3 rounded-full font-sans text-sm transition-all border ${selectedFilter.id === filter.id
-                                                ? "bg-foreground text-background shadow-lg scale-105 border-foreground"
-                                                : "bg-white text-foreground border-zinc-200 hover:border-zinc-300 dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-300"
+                                            ? "bg-foreground text-background shadow-lg scale-105 border-foreground"
+                                            : "bg-white text-foreground border-zinc-200 hover:border-zinc-300 dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-300"
                                             }`}
                                     >
                                         {filter.name}
@@ -396,8 +582,8 @@ export default function Photobooth() {
                                         key={frame.id}
                                         onClick={() => setSelectedFrame(frame)}
                                         className={`snap-center shrink-0 w-24 h-24 rounded-xl border-2 transition-all overflow-hidden relative bg-zinc-50 dark:bg-zinc-800 flex items-center justify-center ${selectedFrame.id === frame.id
-                                                ? "border-accent ring-4 ring-accent/20"
-                                                : "border-transparent hover:border-zinc-300 dark:hover:border-zinc-500"
+                                            ? "border-accent ring-4 ring-accent/20"
+                                            : "border-transparent hover:border-zinc-300 dark:hover:border-zinc-500"
                                             }`}
                                     >
                                         {frame.url ? (
