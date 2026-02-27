@@ -294,10 +294,12 @@ export default function Photobooth() {
         return { left: 20 * (previewW / 800), top: 20 * (photoH / 600), w: previewW - 40 * (previewW / 800), h: photoH - 40 * (photoH / 600) };
     };
 
+    // Strip sidebar uses a narrower width so all 4 slots + footer fit in ~390px height
+    const STRIP_PREVIEW_W = 150;
     const PREVIEW_W = 200;
 
     const previewHeight = selectedLayout.id === "strip"
-        ? Math.round(PREVIEW_W * (STRIP_H / STRIP_W))
+        ? Math.round(STRIP_PREVIEW_W * (STRIP_H / STRIP_W))  // ~409px — fits in view
         : Math.round(PREVIEW_W * (700 / 800));
 
     return (
@@ -374,8 +376,8 @@ export default function Photobooth() {
                                             <div
                                                 key={i}
                                                 className={`w-3 h-3 rounded-full transition-colors ${i < capturedSequence.length ? "bg-accent" :
-                                                        i === currentShotIndex && countdown !== null ? "bg-white animate-pulse" :
-                                                            "bg-white/30"
+                                                    i === currentShotIndex && countdown !== null ? "bg-white animate-pulse" :
+                                                        "bg-white/30"
                                                     }`}
                                             />
                                         ))}
@@ -444,7 +446,10 @@ export default function Photobooth() {
                         </div>
                         <div
                             className="relative bg-white rounded-xl shadow-xl overflow-hidden border-2 border-zinc-200"
-                            style={{ width: PREVIEW_W, height: previewHeight }}
+                            style={{
+                                width: selectedLayout.id === "strip" ? STRIP_PREVIEW_W : PREVIEW_W,
+                                height: previewHeight,
+                            }}
                         >
                             {/* Mini frame overlay — rendered first as background context */}
                             {selectedFrame.url && (
@@ -457,7 +462,7 @@ export default function Photobooth() {
 
                             {/* ── Strip layout slots ── */}
                             {selectedLayout.id === "strip" && [0, 1, 2, 3].map(i => {
-                                const scale = PREVIEW_W / STRIP_W;
+                                const scale = STRIP_PREVIEW_W / STRIP_W;
                                 const top = stripPhotoY(i) * scale;
                                 const left = STRIP_PAD * scale;
                                 const w = STRIP_PHOTO_W * scale;
