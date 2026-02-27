@@ -1,0 +1,47 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-inter);
+  --font-display: var(--font-playfair);
+  
+  --color-blush: #FDF1F4;
+  --color-blush-light: #FFF8FA;
+  --color-rose: #F4D1D6;
+  --color-petal: #FDE8E9;
+  --color-accent: #FF6B8B;
+  --color-accent-hover: #E65A7A;
+}
+
+:root {
+  --background: #FDF1F4;
+  --foreground: #4A3337;
+}
+
+/* Optional dark mode support for soft aesthetic */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #2A1C1F;
+    --foreground: #FDF1F4;
+  }
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* Hide scrollbars for carousel */
+::-webkit-scrollbar {
+  display: none;
+}
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
