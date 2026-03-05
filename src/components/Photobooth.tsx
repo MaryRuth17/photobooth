@@ -178,251 +178,322 @@ export default function Photobooth() {
     const stripPhotoY = (i: number) => STRIP_PAD + i * (STRIP_PHOTO_H + STRIP_GAP);
 
     return (
-        <section id="booth" className="min-h-screen bg-white dark:bg-[#1A1A1A] py-20 px-4 flex flex-col items-center">
-            <div className="max-w-5xl w-full flex flex-col items-center">
+        <section id="booth" className="relative min-h-screen bg-gradient-to-b from-white via-blush-light to-blush py-20 px-4 flex flex-col items-center overflow-hidden">
+            <div className="absolute -top-28 -left-20 h-72 w-72 rounded-full bg-accent/15 blur-3xl pointer-events-none" />
+            <div className="absolute -bottom-24 -right-16 h-80 w-80 rounded-full bg-rose/30 blur-3xl pointer-events-none" />
+
+            <div className="max-w-6xl w-full flex flex-col items-center relative z-10">
 
                 <div className="text-center mb-10">
                     <h2 className="font-display text-4xl mb-2 text-foreground">The Booth</h2>
                     <p className="font-sans text-foreground/60">Customize your shot with premium layouts, filters, and frames</p>
                 </div>
 
-                {/* ═══ Main workspace: camera + optional strip preview ═══ */}
-                <div className="flex gap-6 w-full max-w-5xl items-start justify-center">
+                {/* ═══ Dashboard: camera left, sidebar right ═══ */}
+                <div className="flex gap-6 w-full items-start">
 
-                    {/* Viewfinder Container */}
-                    <div className="relative flex-1 max-w-3xl aspect-[4/3] bg-zinc-100 dark:bg-zinc-900 rounded-2xl overflow-hidden shadow-2xl ring-4 ring-petal dark:ring-zinc-800">
+                    {/* ── LEFT: Camera Column ── */}
+                    <div className="flex-1 flex flex-col gap-3 min-w-0">
 
-                        <Webcam
-                            audio={false}
-                            ref={webcamRef}
-                            screenshotFormat="image/jpeg"
-                            width={800}
-                            height={600}
-                            className="w-full h-full object-cover scale-x-[-1]"
-                            videoConstraints={{ width: 800, height: 600, facingMode: "user" }}
-                            style={{ filter: selectedFilter.value !== "none" ? selectedFilter.value : "none" }}
-                        />
+                        {/* Viewfinder — clean lens, no frame/grid overlays */}
+                        <div className="relative aspect-[4/3] rounded-[28px] overflow-hidden bg-black shadow-2xl">
+                            {/* Minimalist inner border ring */}
+                            <div className="absolute inset-0 rounded-[28px] ring-1 ring-inset ring-white/15 pointer-events-none z-20" />
 
-                        {/* Frame Overlay (Live Preview) */}
-                        {selectedFrame.url && (
-                            <img
-                                src={selectedFrame.url}
-                                className="absolute inset-0 w-full h-full object-fill pointer-events-none z-10"
-                                alt="frame overlay"
+                            <Webcam
+                                audio={false}
+                                ref={webcamRef}
+                                screenshotFormat="image/jpeg"
+                                width={800}
+                                height={600}
+                                className="w-full h-full object-cover scale-x-[-1]"
+                                videoConstraints={{ width: 800, height: 600, facingMode: "user" }}
+                                style={{ filter: selectedFilter.value !== "none" ? selectedFilter.value : "none" }}
                             />
-                        )}
 
-                        {/* Grid Overlay Guides */}
-                        {selectedLayout.id === "grid" && !selectedFrame.url && (
-                            <div className="absolute inset-0 z-10 pointer-events-none">
-                                <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-white/30" />
-                                <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-white/30" />
-                            </div>
-                        )}
-
-                        {/* Sequence Progress Indicator */}
-                        {selectedLayout.shots > 1 && isCapturing && (
-                            <div className="absolute top-4 left-1/2 -translate-x-1/2 flex gap-2 z-20 bg-black/30 backdrop-blur-md px-4 py-2 rounded-full">
-                                <span className="text-white text-sm font-medium mr-2">
-                                    Shot {Math.min(currentShotIndex + 1, selectedLayout.shots)}/{selectedLayout.shots}
-                                </span>
-                                {Array.from({ length: selectedLayout.shots }).map((_, i) => (
-                                    <div
-                                        key={i}
-                                        className={`w-3 h-3 rounded-full transition-colors ${i < capturedSequence.length ? "bg-accent" : i === currentShotIndex && countdown !== null ? "bg-white animate-pulse" : "bg-white/30"
+                            {/* Sequence Progress Indicator */}
+                            {selectedLayout.shots > 1 && isCapturing && (
+                                <div className="absolute top-4 left-1/2 -translate-x-1/2 flex items-center gap-2 z-20 bg-black/40 backdrop-blur-md px-4 py-2 rounded-full">
+                                    <span className="text-white text-sm font-medium mr-1">
+                                        Shot {Math.min(currentShotIndex + 1, selectedLayout.shots)}/{selectedLayout.shots}
+                                    </span>
+                                    {Array.from({ length: selectedLayout.shots }).map((_, i) => (
+                                        <div
+                                            key={i}
+                                            className={`w-2.5 h-2.5 rounded-full transition-colors ${
+                                                i < capturedSequence.length
+                                                    ? "bg-accent"
+                                                    : i === currentShotIndex && countdown !== null
+                                                    ? "bg-white animate-pulse"
+                                                    : "bg-white/30"
                                             }`}
+                                        />
+                                    ))}
+                                </div>
+                            )}
+
+                            {/* Countdown Overlay */}
+                            <AnimatePresence>
+                                {countdown !== null && countdown > 0 && (
+                                    <motion.div
+                                        key={countdown}
+                                        initial={{ opacity: 0, scale: 0.5 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        exit={{ opacity: 0, scale: 1.5 }}
+                                        className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none"
+                                    >
+                                        <span className="text-8xl font-display font-bold text-white drop-shadow-2xl">{countdown}</span>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+
+                            {/* Flash Effect */}
+                            <AnimatePresence>
+                                {countdown === 0 && (
+                                    <motion.div
+                                        key={`flash-${currentShotIndex}`}
+                                        initial={{ opacity: 1 }}
+                                        animate={{ opacity: 0 }}
+                                        transition={{ duration: 0.6 }}
+                                        className="absolute inset-0 bg-white z-30 pointer-events-none"
                                     />
+                                )}
+                            </AnimatePresence>
+                        </div>
+
+                        {/* Camera status bar */}
+                        <div className="flex items-center justify-between px-1">
+                            <div className="flex items-center gap-2 text-xs text-foreground/50 font-sans">
+                                <span className={`w-1.5 h-1.5 rounded-full ${isCapturing ? "bg-red-500 animate-pulse" : "bg-emerald-400"}`} />
+                                {isCapturing ? "Recording…" : "Live"}
+                            </div>
+                            {selectedFrame.url && (
+                                <AnimatePresence>
+                                    <motion.span
+                                        key={selectedFrame.id}
+                                        initial={{ opacity: 0, x: 6 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        exit={{ opacity: 0 }}
+                                        className="text-[11px] font-sans text-foreground/45 bg-foreground/5 px-3 py-1 rounded-full"
+                                    >
+                                        {selectedFrame.name} · applied to output
+                                    </motion.span>
+                                </AnimatePresence>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* ── RIGHT: Sidebar ── */}
+                    <div className="w-72 shrink-0 flex flex-col gap-4">
+
+                        {/* Controls panel */}
+                        <div className="bg-white/70 rounded-3xl shadow-xl overflow-hidden border border-white/80 backdrop-blur-xl">
+
+                            {/* Tab Navigation */}
+                            <div className="flex border-b border-zinc-100">
+                                {([
+                                    { key: "layout" as const, icon: <LayoutGrid size={15} />, label: "Layout" },
+                                    { key: "filter" as const, icon: <Sparkles size={15} />, label: "Filter" },
+                                    { key: "frame" as const, icon: <ImageIcon size={15} />, label: "Frame" },
+                                ]).map(tab => (
+                                    <button
+                                        key={tab.key}
+                                        onClick={() => setActiveTab(tab.key)}
+                                        className={`flex-1 flex flex-col items-center justify-center gap-1 py-3 font-sans text-[11px] font-medium tracking-wide transition-colors ${
+                                            activeTab === tab.key
+                                                ? "text-accent border-b-2 border-accent bg-accent/5"
+                                                : "text-foreground/55 hover:text-foreground hover:bg-zinc-50"
+                                        }`}
+                                    >
+                                        {tab.icon}
+                                        {tab.label}
+                                    </button>
                                 ))}
                             </div>
-                        )}
 
-                        {/* Countdown Overlay */}
+                            {/* Tab Content */}
+                            <div className="p-4">
+                                <AnimatePresence mode="wait">
+
+                                    {activeTab === "layout" && (
+                                        <motion.div
+                                            key="layout-tab"
+                                            initial={{ opacity: 0, y: 8 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: -8 }}
+                                            transition={{ duration: 0.18 }}
+                                            className="flex flex-col gap-2"
+                                        >
+                                            {LAYOUTS.map(layout => (
+                                                <button
+                                                    key={layout.id}
+                                                    onClick={() => handleLayoutChange(layout)}
+                                                    className={`flex items-center justify-between px-4 py-3 rounded-2xl border-2 transition-all text-left ${
+                                                        selectedLayout.id === layout.id
+                                                            ? "border-accent bg-blush text-accent"
+                                                            : "border-zinc-200 hover:border-accent/60 hover:bg-zinc-50 text-foreground"
+                                                    }`}
+                                                >
+                                                    <span className="font-sans font-medium text-sm">{layout.name}</span>
+                                                    <span className="text-xs text-foreground/40">{layout.shots} shot{layout.shots > 1 && "s"}</span>
+                                                </button>
+                                            ))}
+                                        </motion.div>
+                                    )}
+
+                                    {activeTab === "filter" && (
+                                        <motion.div
+                                            key="filter-tab"
+                                            initial={{ opacity: 0, y: 8 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: -8 }}
+                                            transition={{ duration: 0.18 }}
+                                            className="flex flex-col gap-2"
+                                        >
+                                            {FILTERS.map(filter => (
+                                                <button
+                                                    key={filter.id}
+                                                    onClick={() => setSelectedFilter(filter)}
+                                                    className={`px-4 py-3 rounded-xl font-sans text-sm transition-all border text-left ${
+                                                        selectedFilter.id === filter.id
+                                                            ? "bg-foreground text-background border-foreground shadow-sm"
+                                                            : "bg-white text-foreground border-zinc-200 hover:border-zinc-300"
+                                                    }`}
+                                                >
+                                                    {filter.name}
+                                                </button>
+                                            ))}
+                                        </motion.div>
+                                    )}
+
+                                    {activeTab === "frame" && (
+                                        <motion.div
+                                            key="frame-tab"
+                                            initial={{ opacity: 0, y: 8 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: -8 }}
+                                            transition={{ duration: 0.18 }}
+                                            className="flex flex-col gap-3"
+                                        >
+                                            <div className="grid grid-cols-3 gap-2">
+                                                {currentFrames.map(frame => (
+                                                    <button
+                                                        key={frame.id}
+                                                        onClick={() => setSelectedFrame(frame)}
+                                                        className={`aspect-square rounded-xl border-2 transition-all overflow-hidden relative bg-zinc-50 flex flex-col items-center justify-center gap-1 ${
+                                                            selectedFrame.id === frame.id
+                                                                ? "border-accent ring-2 ring-accent/20"
+                                                                : "border-transparent hover:border-zinc-300"
+                                                        }`}
+                                                    >
+                                                        {frame.url ? (
+                                                            <img src={frame.url} className="w-full h-full object-contain p-1" alt={frame.name} />
+                                                        ) : (
+                                                            <span className="text-[10px] font-sans text-foreground/40 leading-tight text-center px-1">No Frame</span>
+                                                        )}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                            {selectedFrame.url && (
+                                                <p className="text-[11px] text-foreground/40 font-sans text-center pt-1">
+                                                    ✦ Frame applied to captured photo only
+                                                </p>
+                                            )}
+                                        </motion.div>
+                                    )}
+
+                                </AnimatePresence>
+                            </div>
+                        </div>
+
+                        {/* ── Strip Live Preview (strip layout only) ── */}
                         <AnimatePresence>
-                            {countdown !== null && countdown > 0 && (
+                            {selectedLayout.id === "strip" && (
                                 <motion.div
-                                    key={countdown}
-                                    initial={{ opacity: 0, scale: 0.5 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    exit={{ opacity: 0, scale: 1.5 }}
-                                    className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none"
+                                    key="strip-preview"
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: 10 }}
+                                    transition={{ duration: 0.25 }}
+                                    className="bg-white/70 rounded-3xl shadow-xl border border-white/80 backdrop-blur-xl p-4 flex flex-col items-center gap-3"
                                 >
-                                    <span className="text-8xl font-display font-bold text-white drop-shadow-2xl">{countdown}</span>
+                                    <span className="text-[11px] text-foreground/45 font-sans font-medium uppercase tracking-wider">Strip Preview</span>
+                                    <div
+                                        className="relative w-full bg-zinc-100 rounded-xl overflow-hidden border border-zinc-200"
+                                        style={{ aspectRatio: `${STRIP_W}/${STRIP_H}` }}
+                                    >
+                                        {selectedFrame.url && (
+                                            <img
+                                                src={selectedFrame.url}
+                                                className="absolute inset-0 w-full h-full object-fill pointer-events-none z-10"
+                                                alt="strip frame preview"
+                                            />
+                                        )}
+                                        {[0, 1, 2, 3].map(i => {
+                                            const padPct  = (STRIP_PAD / STRIP_W) * 100;
+                                            const wPct    = (STRIP_PHOTO_W / STRIP_W) * 100;
+                                            const topPct  = (stripPhotoY(i) / STRIP_H) * 100;
+                                            const hPct    = (STRIP_PHOTO_H / STRIP_H) * 100;
+                                            const photoSrc = capturedSequence[i];
+                                            return (
+                                                <div
+                                                    key={i}
+                                                    className="absolute overflow-hidden"
+                                                    style={{ top: `${topPct}%`, left: `${padPct}%`, width: `${wPct}%`, height: `${hPct}%` }}
+                                                >
+                                                    {photoSrc ? (
+                                                        <motion.img
+                                                            initial={{ opacity: 0, scale: 0.85 }}
+                                                            animate={{ opacity: 1, scale: 1 }}
+                                                            src={photoSrc}
+                                                            className="w-full h-full object-cover scale-x-[-1]"
+                                                            style={{ filter: selectedFilter.value !== "none" ? selectedFilter.value : "none" }}
+                                                            alt={`Shot ${i + 1}`}
+                                                        />
+                                                    ) : (
+                                                        <div className={`w-full h-full flex items-center justify-center text-xs font-sans ${
+                                                            i === currentShotIndex && isCapturing
+                                                                ? "bg-accent/10 text-accent animate-pulse"
+                                                                : "bg-zinc-200/60 text-zinc-400"
+                                                        }`}>
+                                                            {i + 1}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
                                 </motion.div>
                             )}
                         </AnimatePresence>
 
-                        {/* Flash Effect */}
-                        <AnimatePresence>
-                            {countdown === 0 && (
-                                <motion.div
-                                    key={`flash-${currentShotIndex}`}
-                                    initial={{ opacity: 1 }}
-                                    animate={{ opacity: 0 }}
-                                    transition={{ duration: 0.6 }}
-                                    className="absolute inset-0 bg-white z-30 pointer-events-none"
-                                />
-                            )}
-                        </AnimatePresence>
-                    </div>
-
-                    {/* ═══ Real-time Strip Preview (only for strip layout during capture) ═══ */}
-                    {selectedLayout.id === "strip" && (
-                        <motion.div
-                            layout
-                            className="hidden md:flex flex-col items-center shrink-0"
-                            style={{ width: 180 }}
-                        >
-                            <div
-                                className="relative bg-white rounded-xl shadow-xl overflow-hidden border-2 border-zinc-200"
-                                style={{ width: 180, height: 180 * (STRIP_H / STRIP_W) }}
+                        {/* ── Capture Button ── */}
+                        <div className="flex flex-col items-center gap-2">
+                            <motion.button
+                                onClick={captureSequence}
+                                disabled={isCapturing}
+                                whileHover={{ y: -2, scale: 1.02 }}
+                                whileTap={{ scale: 0.97 }}
+                                className="relative w-full flex items-center justify-center gap-3 h-16 rounded-2xl bg-gradient-to-r from-accent to-[#ff4f75] hover:from-accent-hover hover:to-accent text-white shadow-2xl shadow-accent/30 transition-all disabled:opacity-50"
                             >
-                                {/* Mini frame overlay */}
-                                {selectedFrame.url && (
-                                    <img
-                                        src={selectedFrame.url}
-                                        className="absolute inset-0 w-full h-full object-fill pointer-events-none z-10"
-                                        alt="strip frame"
-                                    />
-                                )}
+                                <span className="absolute -inset-1 rounded-2xl bg-accent/30 blur-md -z-10" />
+                                <span className="flex items-center justify-center h-9 w-9 rounded-xl bg-white/20 border border-white/40">
+                                    <Camera size={20} />
+                                </span>
+                                <span className="font-sans text-lg font-semibold tracking-wide">Capture</span>
+                            </motion.button>
+                            <p className="text-xs font-sans text-foreground/45 text-center">
+                                {isCapturing
+                                    ? "Capture in progress…"
+                                    : `${selectedLayout.shots} shot${selectedLayout.shots > 1 ? "s" : ""} · ${selectedLayout.name}`}
+                            </p>
+                        </div>
 
-                                {/* Photo slots */}
-                                {[0, 1, 2, 3].map(i => {
-                                    const scale = 180 / STRIP_W;
-                                    const top = stripPhotoY(i) * scale;
-                                    const left = STRIP_PAD * scale;
-                                    const w = STRIP_PHOTO_W * scale;
-                                    const h = STRIP_PHOTO_H * scale;
-                                    const photoSrc = capturedSequence[i];
-
-                                    return (
-                                        <div
-                                            key={i}
-                                            className="absolute overflow-hidden rounded-sm"
-                                            style={{ top, left, width: w, height: h }}
-                                        >
-                                            {photoSrc ? (
-                                                <motion.img
-                                                    initial={{ opacity: 0, scale: 0.8 }}
-                                                    animate={{ opacity: 1, scale: 1 }}
-                                                    src={photoSrc}
-                                                    className="w-full h-full object-cover scale-x-[-1]"
-                                                    style={{ filter: selectedFilter.value !== "none" ? selectedFilter.value : "none" }}
-                                                    alt={`Shot ${i + 1}`}
-                                                />
-                                            ) : (
-                                                <div className={`w-full h-full flex items-center justify-center text-xs font-sans ${i === currentShotIndex && isCapturing
-                                                        ? "bg-accent/10 text-accent animate-pulse"
-                                                        : "bg-zinc-100 text-zinc-400"
-                                                    }`}>
-                                                    {i + 1}
-                                                </div>
-                                            )}
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                            <span className="text-xs text-foreground/50 mt-3 font-sans">Live Strip Preview</span>
-                        </motion.div>
-                    )}
-                </div>
+                    </div>{/* end sidebar */}
+                </div>{/* end dashboard row */}
 
                 {/* Hidden Canvas for Compositing */}
                 <canvas ref={canvasRef} className="hidden" />
-
-                {/* Interactive Tools Panel */}
-                <div className="w-full max-w-3xl mt-10 bg-white dark:bg-zinc-900 rounded-3xl shadow-xl overflow-hidden border border-zinc-100 dark:border-zinc-800">
-
-                    {/* Tab Navigation */}
-                    <div className="flex border-b border-zinc-100 dark:border-zinc-800">
-                        {([
-                            { key: "layout" as const, icon: <LayoutGrid size={18} />, label: "Layout" },
-                            { key: "filter" as const, icon: <Sparkles size={18} />, label: "Filter" },
-                            { key: "frame" as const, icon: <ImageIcon size={18} />, label: "Frame" },
-                        ]).map(tab => (
-                            <button
-                                key={tab.key}
-                                onClick={() => setActiveTab(tab.key)}
-                                className={`flex-1 flex items-center justify-center gap-2 py-4 font-sans font-medium transition-colors ${activeTab === tab.key
-                                        ? "text-accent border-b-2 border-accent bg-accent/5"
-                                        : "text-foreground/60 hover:text-foreground hover:bg-zinc-50 dark:hover:bg-zinc-800"
-                                    }`}
-                            >
-                                {tab.icon} {tab.label}
-                            </button>
-                        ))}
-                    </div>
-
-                    {/* Tab Content */}
-                    <div className="p-6 h-40 relative">
-                        {activeTab === "layout" && (
-                            <div className="flex gap-4 h-full">
-                                {LAYOUTS.map(layout => (
-                                    <button
-                                        key={layout.id}
-                                        onClick={() => handleLayoutChange(layout)}
-                                        className={`flex-1 flex flex-col items-center justify-center gap-2 rounded-2xl border-2 transition-all ${selectedLayout.id === layout.id
-                                                ? "border-accent bg-blush text-accent dark:bg-accent/10"
-                                                : "border-zinc-200 dark:border-zinc-700 hover:border-accent hover:bg-zinc-50 text-foreground dark:hover:bg-zinc-800"
-                                            }`}
-                                    >
-                                        <span className="font-sans font-medium">{layout.name}</span>
-                                        <span className="text-xs text-foreground/50">{layout.shots} shot{layout.shots > 1 && "s"}</span>
-                                    </button>
-                                ))}
-                            </div>
-                        )}
-
-                        {activeTab === "filter" && (
-                            <div className="flex gap-3 overflow-x-auto h-full items-center snap-x px-2 scrollbar-none">
-                                {FILTERS.map(filter => (
-                                    <button
-                                        key={filter.id}
-                                        onClick={() => setSelectedFilter(filter)}
-                                        className={`snap-center shrink-0 px-6 py-3 rounded-full font-sans text-sm transition-all border ${selectedFilter.id === filter.id
-                                                ? "bg-foreground text-background shadow-lg scale-105 border-foreground"
-                                                : "bg-white text-foreground border-zinc-200 hover:border-zinc-300 dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-300"
-                                            }`}
-                                    >
-                                        {filter.name}
-                                    </button>
-                                ))}
-                            </div>
-                        )}
-
-                        {activeTab === "frame" && (
-                            <div className="flex gap-4 overflow-x-auto h-full items-center snap-x px-2 scrollbar-none">
-                                {currentFrames.map(frame => (
-                                    <button
-                                        key={frame.id}
-                                        onClick={() => setSelectedFrame(frame)}
-                                        className={`snap-center shrink-0 w-24 h-24 rounded-xl border-2 transition-all overflow-hidden relative bg-zinc-50 dark:bg-zinc-800 flex items-center justify-center ${selectedFrame.id === frame.id
-                                                ? "border-accent ring-4 ring-accent/20"
-                                                : "border-transparent hover:border-zinc-300 dark:hover:border-zinc-500"
-                                            }`}
-                                    >
-                                        {frame.url ? (
-                                            <img src={frame.url} className="w-full h-full object-contain p-1" alt={frame.name} />
-                                        ) : (
-                                            <span className="text-xs font-sans text-foreground/50">None</span>
-                                        )}
-                                    </button>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                {/* Capture Button */}
-                <div className="mt-8">
-                    <button
-                        onClick={captureSequence}
-                        disabled={isCapturing}
-                        className="group relative flex items-center justify-center w-24 h-24 rounded-full bg-accent hover:bg-accent-hover text-white shadow-xl shadow-accent/20 hover:shadow-accent/40 hover:-translate-y-1 transition-all disabled:opacity-50 disabled:hover:translate-y-0"
-                    >
-                        <div className="absolute inset-0 rounded-full border-4 border-accent opacity-50 scale-110 group-hover:scale-125 transition-transform duration-500" />
-                        <Camera size={36} />
-                    </button>
-                </div>
 
             </div>
 
@@ -443,12 +514,13 @@ export default function Photobooth() {
                         >
                             <h3 className="font-display text-4xl mb-8 text-foreground">Your Perfect Shot</h3>
 
-                            <div className={`w-full bg-zinc-100 dark:bg-zinc-800 rounded-2xl shadow-inner overflow-hidden flex items-center justify-center mb-10 py-6`}>
+                            <div className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-2xl shadow-inner overflow-hidden flex items-center justify-center mb-10 py-6">
                                 <img
                                     src={capturedImage}
                                     alt="Captured preview"
-                                    className={`object-contain rounded-md shadow-md bg-white ${selectedLayout.id === "strip" ? "h-[65vh] w-auto" : "w-full max-w-2xl"
-                                        }`}
+                                    className={`object-contain rounded-md shadow-md bg-white ${
+                                        selectedLayout.id === "strip" ? "h-[65vh] w-auto" : "w-full max-w-2xl"
+                                    }`}
                                 />
                             </div>
 
