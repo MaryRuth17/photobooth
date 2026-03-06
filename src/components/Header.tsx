@@ -28,11 +28,11 @@ export default function Header() {
                     <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-accent text-white shadow-md shadow-accent/20">
                         <Camera size={20} />
                     </div>
-                    <span className="font-display font-bold text-2xl tracking-tight text-foreground">Aura</span>
+                    <span className="font-display font-bold text-2xl tracking-tight text-foreground">Yshots</span>
                 </div>
 
                 <nav className="hidden md:flex items-center gap-8 font-sans font-medium text-sm text-foreground/80">
-                    <a href="#booth" className="hover:text-accent transition-colors">Photobooth</a>
+                    <a href="#booth" className="hover:text-accent transition-colors">About the Creator</a>
                     <a href="#gallery" className="hover:text-accent transition-colors">Gallery</a>
                     <button
                         onClick={() => document.getElementById("booth")?.scrollIntoView({ behavior: "smooth" })}

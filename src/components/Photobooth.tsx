@@ -90,16 +90,16 @@ export default function Photobooth() {
         >
             <canvas ref={canvasRef} className="hidden" />
 
-            <div className="flex-1 min-h-0 flex flex-col px-4 sm:px-6 py-4 lg:py-5 gap-4 max-w-[1200px] w-full mx-auto">
+            <div className="flex-1 min-h-0 flex flex-col px-4 sm:px-6 py-6 lg:py-14 gap-10 max-w-[1200px] w-full mx-auto">
                 <motion.div
                     initial={{ opacity: 0, y: -16 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.55, ease: "easeOut" }}
                     className="text-center shrink-0"
                 >
-                    <h2 className="font-display text-3xl lg:text-4xl mb-1 text-foreground">The Booth</h2>
+                    <h2 className="font-display text-3xl lg:text-4xl mb-1 text-foreground">Yshots Photobooth</h2>
                     <p className="font-sans text-sm text-foreground/60">
-                        Customize your shot with premium layouts, filters &amp; frames
+                        Customize your shot with layouts, filters &amp; frames
                     </p>
                 </motion.div>
 

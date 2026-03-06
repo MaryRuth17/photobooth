@@ -30,7 +30,6 @@ export default function HeroSection() {
                 transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
             />
             <motion.div
-                // @ts-ignore
                 className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg h-[500px] bg-petal/60 rounded-full blur-3xl mix-blend-multiply"
                 animate={{
                     rotate: [0, 90, 180, 270, 360],
@@ -49,10 +48,10 @@ export default function HeroSection() {
                         <Camera size={28} />
                     </div>
                     <h1 className="font-display text-5xl md:text-7xl font-bold text-foreground mb-6 tracking-tight">
-                        Strike a <span className="text-accent italic">Pose</span>
+                        Pose with <span className="text-accent italic">Yshots</span>
                     </h1>
                     <p className="font-sans text-lg md:text-xl text-foreground/80 max-w-md mb-12 leading-relaxed">
-                        Experience a premium photobooth directly in your browser. Capture your glowing moments.
+                        Your online cutesy photobooth experience.
                     </p>
 
                     <motion.button
