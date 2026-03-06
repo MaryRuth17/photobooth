@@ -311,9 +311,9 @@ export default function Photobooth() {
     return (
         <section
             id="booth"
-            className="min-h-screen bg-white dark:bg-[#1A1A1A] pt-28 pb-16 px-4 flex flex-col items-center scroll-mt-20"
+            className="min-h-screen bg-white dark:bg-[#1A1A1A] pt-28 pb-16 px-4 sm:px-6 flex flex-col items-center scroll-mt-20"
         >
-            <div className="max-w-7xl w-full flex flex-col items-center">
+            <div className="max-w-[1100px] w-full flex flex-col items-center">
 
             {/* ── Title ── */}
             <motion.div
@@ -341,7 +341,7 @@ export default function Photobooth() {
                 initial={{ opacity: 0, y: 28 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.65, delay: 0.15, ease: "easeOut" }}
-                className="flex gap-6 w-full items-start"
+                className="flex flex-col md:flex-row gap-5 lg:gap-6 w-full"
             >
 
                 {/* ── Left: Controls Column ── */}
@@ -349,7 +349,7 @@ export default function Photobooth() {
                     initial={{ opacity: 0, x: -24 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.6, delay: 0.3, ease: "easeOut" }}
-                    className="flex flex-col gap-4 shrink-0 w-72"
+                    className="flex flex-col gap-4 w-full md:w-60 lg:w-72 md:shrink-0 order-2 md:order-1"
                 >
                     {/* Tools Panel */}
                     <div className="bg-white dark:bg-zinc-900 rounded-3xl shadow-xl overflow-hidden border border-zinc-100 dark:border-zinc-800">
@@ -546,7 +546,7 @@ export default function Photobooth() {
                 </motion.div>{/* /Left Controls Column */}
 
                 {/* ── Right: Camera + Preview ── */}
-                <div className="flex gap-6 flex-1 min-w-0 items-start">
+                <div className="flex gap-4 lg:gap-6 flex-1 min-w-0 w-full items-start order-1 md:order-2">
 
                 {/* ── Camera Panel ── */}
                 <motion.div
@@ -675,7 +675,7 @@ export default function Photobooth() {
                     initial={{ opacity: 0, x: 24 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.6, delay: 0.25, ease: "easeOut" }}
-                    className="hidden md:flex flex-col items-center shrink-0 gap-3"
+                    className="hidden lg:flex flex-col items-center shrink-0 gap-3"
                     style={{ width: selectedLayout.id === "strip" ? STRIP_PREVIEW_W : PREVIEW_W }}
                 >
                     <div className="w-full flex items-center justify-between px-1">
@@ -780,7 +780,7 @@ export default function Photobooth() {
                 </div>{/* /Right column */}
             </motion.div>{/* /Main Row */}
 
-            </div>{/* /max-w-5xl */}
+            </div>{/* /max-w container */}
 
             {/* ═══ Preview Modal ═══ */}
             <AnimatePresence>
