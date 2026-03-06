@@ -48,6 +48,7 @@ export default function LivePreview({
     layoutId, selectedFrame, filterValue,
     capturedSequence, currentShotIndex, isCapturing,
 }: LivePreviewProps) {
+    const outerW = PREVIEW_W;
     const previewW = layoutId === "strip" ? STRIP_PREVIEW_W : PREVIEW_W;
     const previewH = layoutId === "strip"
         ? Math.round(STRIP_PREVIEW_W * (STRIP_H / STRIP_W))
@@ -60,7 +61,7 @@ export default function LivePreview({
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.25, ease: "easeOut" }}
             className="hidden lg:flex flex-col items-center shrink-0 gap-3"
-            style={{ width: previewW }}
+            style={{ width: outerW }}
         >
             <div className="w-full flex items-center justify-between px-1">
                 <span className="text-xs font-sans font-semibold text-foreground/50 uppercase tracking-wider">

@@ -51,10 +51,28 @@ export function useCapture({ selectedLayout, selectedFilter, selectedFrame, onCa
     }, [countdown]);
 
     const takeSingleSnapshot = () => {
-        const webcam = webcamRef.current;
-        if (!webcam) return;
-        const imageSrc = webcam.getScreenshot();
-        if (imageSrc) {
+        const attempt = (retriesLeft: number) => {
+            const webcam = webcamRef.current;
+            if (!webcam) {
+                setIsCapturing(false);
+                setCountdown(null);
+                return;
+            }
+
+            const imageSrc = webcam.getScreenshot();
+
+            if (!imageSrc) {
+                if (retriesLeft > 0) {
+                    setTimeout(() => attempt(retriesLeft - 1), 150);
+                    return;
+                }
+                // If we still can't grab a frame, stop the session gracefully
+                // so the UI doesn't get stuck.
+                setIsCapturing(false);
+                setCountdown(null);
+                return;
+            }
+
             setCapturedSequence(prev => {
                 const newSequence = [...prev, imageSrc];
                 if (newSequence.length < selectedLayout.shots) {
@@ -69,7 +87,11 @@ export function useCapture({ selectedLayout, selectedFilter, selectedFrame, onCa
                 }
                 return newSequence;
             });
-        }
+        };
+
+        // Retry a few times in case the webcam frame isn't ready exactly
+        // when the countdown hits zero.
+        attempt(3);
     };
 
     const generateComposite = (sequence: string[]) => {
