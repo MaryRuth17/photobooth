@@ -33,7 +33,7 @@ export const FRAMES = [
             // Footer band (semi-transparent)
             `<rect x="0" y="600" width="800" height="100" fill="#FDF1F4" rx="0"/>` +
             `<line x1="80" y1="615" x2="720" y2="615" stroke="#F4D1D6" stroke-width="2"/>` +
-            `<text x="400" y="665" font-family="serif" font-size="28" font-style="italic" text-anchor="middle" fill="#FF6B8B" opacity=".9">Your Aura Moment</text>` +
+            `<text x="400" y="665" font-family="serif" font-size="28" font-style="italic" text-anchor="middle" fill="#FF6B8B" opacity=".9">yshots</text>` +
             `</svg>`
         )}`,
     },
@@ -50,7 +50,7 @@ export const FRAMES = [
             `<path d="M792 592 L742 592 L792 542Z" fill="#D4A574" opacity=".35"/>` +
             `<rect x="0" y="600" width="800" height="100" fill="#FFFDF7"/>` +
             `<line x1="60" y1="616" x2="740" y2="616" stroke="#D4A574" stroke-width="1.5"/>` +
-            `<text x="400" y="663" font-family="serif" font-size="26" text-anchor="middle" fill="#D4A574">✦ Aura Moments ✦</text>` +
+            `<text x="400" y="663" font-family="serif" font-size="26" text-anchor="middle" fill="#D4A574">✦ yshots ✦</text>` +
             `<line x1="60" y1="682" x2="740" y2="682" stroke="#D4A574" stroke-width="1.5"/>` +
             `</svg>`
         )}`,
@@ -63,8 +63,8 @@ export const FRAMES = [
             `<rect x="12" y="12" width="776" height="576" rx="6" fill="none" stroke="#e8e8e8" stroke-width="14"/>` +
             `<rect x="28" y="28" width="744" height="544" rx="4" fill="none" stroke="#f0f0f0" stroke-width="3"/>` +
             `<rect x="0" y="600" width="800" height="100" fill="#ffffff"/>` +
-            `<text x="400" y="655" font-family="serif" font-size="38" font-style="italic" text-anchor="middle" fill="#FF6B8B">Aura Moments</text>` +
-            `<text x="400" y="685" font-family="sans-serif" font-size="14" text-anchor="middle" fill="#ccc">photobooth</text>` +
+            `<text x="400" y="655" font-family="serif" font-size="38" font-style="italic" text-anchor="middle" fill="#FF6B8B">yshots</text>` +
+            `<text x="400" y="685" font-family="sans-serif" font-size="14" text-anchor="middle" fill="#ccc">yshots</text>` +
             `</svg>`
         )}`,
     },
@@ -80,7 +80,7 @@ export const FRAMES = [
             `<circle cx="762" cy="568" r="40" fill="#B8D4E3" opacity=".14"/>` +
             `<circle cx="38" cy="558" r="24" fill="#D4A574" opacity=".12"/>` +
             `<rect x="0" y="600" width="800" height="100" fill="#F0F4F8"/>` +
-            `<text x="400" y="658" font-family="serif" font-size="24" text-anchor="middle" fill="#8BA4B5" opacity=".9">captured with love</text>` +
+            `<text x="400" y="658" font-family="serif" font-size="24" text-anchor="middle" fill="#8BA4B5" opacity=".9">yshots</text>` +
             `</svg>`
         )}`,
     },
@@ -96,7 +96,7 @@ export const FRAMES = [
             `<circle cx="20" cy="580" r="16" fill="none" stroke="#E8D5C4" stroke-width="3"/>` +
             `<circle cx="780" cy="580" r="16" fill="none" stroke="#E8D5C4" stroke-width="3"/>` +
             `<rect x="0" y="600" width="800" height="100" fill="#FFF8F0"/>` +
-            `<text x="400" y="660" font-family="serif" font-size="26" font-style="italic" text-anchor="middle" fill="#C4A882">♡ sweet memories ♡</text>` +
+            `<text x="400" y="660" font-family="serif" font-size="26" font-style="italic" text-anchor="middle" fill="#C4A882">yshots</text>` +
             `</svg>`
         )}`,
     },
@@ -129,7 +129,7 @@ export const GRID_FRAMES = [
             // Footer band
             `<rect x="0" y="600" width="800" height="100" fill="#FDF1F4"/>` +
             `<line x1="80" y1="615" x2="720" y2="615" stroke="#F4D1D6" stroke-width="2"/>` +
-            `<text x="400" y="665" font-family="serif" font-size="28" font-style="italic" text-anchor="middle" fill="#FF6B8B" opacity=".9">Your Aura Moment</text>` +
+            `<text x="400" y="665" font-family="serif" font-size="28" font-style="italic" text-anchor="middle" fill="#FF6B8B" opacity=".9">yshots</text>` +
             `</svg>`
         )}`,
     },
@@ -149,7 +149,7 @@ export const GRID_FRAMES = [
             `<path d="M792 592 L745 592 L792 545Z" fill="#D4A574" opacity=".3"/>` +
             `<rect x="0" y="600" width="800" height="100" fill="#FFFDF7"/>` +
             `<line x1="60" y1="616" x2="740" y2="616" stroke="#D4A574" stroke-width="1.5"/>` +
-            `<text x="400" y="663" font-family="serif" font-size="26" text-anchor="middle" fill="#D4A574">✦ Aura Moments ✦</text>` +
+            `<text x="400" y="663" font-family="serif" font-size="26" text-anchor="middle" fill="#D4A574">✦ yshots ✦</text>` +
             `<line x1="60" y1="682" x2="740" y2="682" stroke="#D4A574" stroke-width="1.5"/>` +
             `</svg>`
         )}`,
@@ -168,7 +168,7 @@ export const GRID_FRAMES = [
             `<circle cx="750" cy="565" r="55" fill="#B8D4E3" opacity=".1"/>` +
             `<circle cx="762" cy="40" r="32" fill="#D4A574" opacity=".08"/>` +
             `<rect x="0" y="600" width="800" height="100" fill="#F0F4F8"/>` +
-            `<text x="400" y="658" font-family="serif" font-size="24" text-anchor="middle" fill="#8BA4B5">captured with love</text>` +
+            `<text x="400" y="658" font-family="serif" font-size="24" text-anchor="middle" fill="#8BA4B5">yshots</text>` +
             `</svg>`
         )}`,
     },
@@ -183,8 +183,8 @@ export const GRID_FRAMES = [
             `<rect x="22" y="310" width="370" height="272" rx="4" fill="none" stroke="#ebebeb" stroke-width="3"/>` +
             `<rect x="408" y="310" width="370" height="272" rx="4" fill="none" stroke="#ebebeb" stroke-width="3"/>` +
             `<rect x="0" y="600" width="800" height="100" fill="#ffffff"/>` +
-            `<text x="400" y="655" font-family="serif" font-size="34" font-style="italic" text-anchor="middle" fill="#FF6B8B">Aura Grid</text>` +
-            `<text x="400" y="684" font-family="sans-serif" font-size="13" text-anchor="middle" fill="#ccc">photobooth</text>` +
+            `<text x="400" y="655" font-family="serif" font-size="34" font-style="italic" text-anchor="middle" fill="#FF6B8B">yshots</text>` +
+            `<text x="400" y="684" font-family="sans-serif" font-size="13" text-anchor="middle" fill="#ccc">yshots</text>` +
             `</svg>`
         )}`,
     },
@@ -204,7 +204,7 @@ export const GRID_FRAMES = [
             `<text x="12" y="596" font-size="18" fill="#FFB6C1">♥</text>` +
             `<text x="778" y="596" font-size="18" fill="#FFB6C1">♥</text>` +
             `<rect x="0" y="600" width="800" height="100" fill="#FFF5F7"/>` +
-            `<text x="400" y="662" font-family="serif" font-size="28" font-style="italic" text-anchor="middle" fill="#FF6B8B">♡ with love ♡</text>` +
+            `<text x="400" y="662" font-family="serif" font-size="28" font-style="italic" text-anchor="middle" fill="#FF6B8B">yshots</text>` +
             `</svg>`
         )}`,
     },
@@ -220,7 +220,7 @@ export const GRID_FRAMES = [
             `<rect x="408" y="310" width="370" height="272" rx="10" fill="none" stroke="#E8D5C4" stroke-width="6"/>` +
             `<rect x="12" y="12" width="776" height="576" rx="14" fill="none" stroke="#E8D5C4" stroke-width="2" stroke-dasharray="6 4"/>` +
             `<rect x="0" y="600" width="800" height="100" fill="#FFF8F0"/>` +
-            `<text x="400" y="660" font-family="serif" font-size="24" font-style="italic" text-anchor="middle" fill="#C4A882">♡ sweet memories ♡</text>` +
+            `<text x="400" y="660" font-family="serif" font-size="24" font-style="italic" text-anchor="middle" fill="#C4A882">yshots</text>` +
             `</svg>`
         )}`,
     },
@@ -274,7 +274,7 @@ export const STRIP_FRAMES = [
             `<circle cx="16" cy="${STRIP_H - 16}" r="8" fill="#FF6B8B" opacity=".5"/>` +
             `<circle cx="${STRIP_W - 16}" cy="${STRIP_H - 16}" r="8" fill="#FF6B8B" opacity=".5"/>` +
             `<line x1="80" y1="${STRIP_H - 60}" x2="${STRIP_W - 80}" y2="${STRIP_H - 60}" stroke="#F4D1D6" stroke-width="2"/>` +
-            `<text x="${STRIP_W / 2}" y="${STRIP_H - 30}" font-family="serif" font-size="22" font-style="italic" text-anchor="middle" fill="#FF6B8B" opacity=".8">Your Aura Moment</text>` +
+            `<text x="${STRIP_W / 2}" y="${STRIP_H - 30}" font-family="serif" font-size="22" font-style="italic" text-anchor="middle" fill="#FF6B8B" opacity=".8">yshots</text>` +
             `</svg>`
         )}`,
     },
@@ -290,7 +290,7 @@ export const STRIP_FRAMES = [
             `<path d="${STRIP_W} 0 L${STRIP_W - 40} 0 L${STRIP_W} 40Z" fill="#D4A574" opacity=".2"/>` +
             `<path d="M0 ${STRIP_H} L40 ${STRIP_H} L0 ${STRIP_H - 40}Z" fill="#D4A574" opacity=".2"/>` +
             `<path d="M${STRIP_W} ${STRIP_H} L${STRIP_W - 40} ${STRIP_H} L${STRIP_W} ${STRIP_H - 40}Z" fill="#D4A574" opacity=".2"/>` +
-            `<text x="${STRIP_W / 2}" y="${STRIP_H - 35}" font-family="serif" font-size="20" text-anchor="middle" fill="#D4A574">✦ Aura Moments ✦</text>` +
+            `<text x="${STRIP_W / 2}" y="${STRIP_H - 35}" font-family="serif" font-size="20" text-anchor="middle" fill="#D4A574">✦ yshots ✦</text>` +
             `</svg>`
         )}`,
     },
@@ -305,7 +305,7 @@ export const STRIP_FRAMES = [
             `<circle cx="${STRIP_W - 30}" cy="40" r="30" fill="#D4A574" opacity=".08"/>` +
             `<circle cx="40" cy="${STRIP_H - 40}" r="35" fill="#D4A574" opacity=".08"/>` +
             stripPhotoCutouts("#B8D4E3", 5, 12) +
-            `<text x="${STRIP_W / 2}" y="${STRIP_H - 35}" font-family="serif" font-size="20" text-anchor="middle" fill="#8BA4B5">captured with love</text>` +
+            `<text x="${STRIP_W / 2}" y="${STRIP_H - 35}" font-family="serif" font-size="20" text-anchor="middle" fill="#8BA4B5">yshots</text>` +
             `</svg>`
         )}`,
     },
@@ -318,7 +318,7 @@ export const STRIP_FRAMES = [
             `<line x1="0" y1="18" x2="${STRIP_W}" y2="18" stroke="#444" stroke-width="4" stroke-dasharray="14 10"/>` +
             `<line x1="0" y1="${STRIP_H - 18}" x2="${STRIP_W}" y2="${STRIP_H - 18}" stroke="#444" stroke-width="4" stroke-dasharray="14 10"/>` +
             stripPhotoCutouts("#555", 3, 4) +
-            `<text x="${STRIP_W / 2}" y="${STRIP_H - 35}" font-family="monospace" font-size="16" text-anchor="middle" fill="#888">AURA PHOTOBOOTH</text>` +
+            `<text x="${STRIP_W / 2}" y="${STRIP_H - 35}" font-family="monospace" font-size="16" text-anchor="middle" fill="#888">YSHOTS</text>` +
             `</svg>`
         )}`,
     },
@@ -334,7 +334,7 @@ export const STRIP_FRAMES = [
             `<text x="18" y="${STRIP_H - 12}" font-size="16" fill="#FFB6C1">♥</text>` +
             `<text x="${STRIP_W - 24}" y="${STRIP_H - 12}" font-size="16" fill="#FFB6C1">♥</text>` +
             [0, 1, 2].map(i => `<text x="${STRIP_W / 2}" y="${stripPhotoY(i) + STRIP_PHOTO_H + STRIP_GAP / 2 + 6}" font-size="14" text-anchor="middle" fill="#FF6B8B" opacity=".5">♥</text>`).join("") +
-            `<text x="${STRIP_W / 2}" y="${STRIP_H - 30}" font-family="serif" font-size="22" font-style="italic" text-anchor="middle" fill="#FF6B8B">♡ with love ♡</text>` +
+            `<text x="${STRIP_W / 2}" y="${STRIP_H - 30}" font-family="serif" font-size="22" font-style="italic" text-anchor="middle" fill="#FF6B8B">yshots</text>` +
             `</svg>`
         )}`,
     },
@@ -350,7 +350,7 @@ export const STRIP_FRAMES = [
             `<circle cx="${STRIP_W - STRIP_PAD}" cy="${STRIP_PAD}" r="12" fill="none" stroke="#E8D5C4" stroke-width="2"/>` +
             `<circle cx="${STRIP_PAD}" cy="${STRIP_H - STRIP_FOOTER + 10}" r="12" fill="none" stroke="#E8D5C4" stroke-width="2"/>` +
             `<circle cx="${STRIP_W - STRIP_PAD}" cy="${STRIP_H - STRIP_FOOTER + 10}" r="12" fill="none" stroke="#E8D5C4" stroke-width="2"/>` +
-            `<text x="${STRIP_W / 2}" y="${STRIP_H - 35}" font-family="serif" font-size="20" font-style="italic" text-anchor="middle" fill="#C4A882">♡ sweet memories ♡</text>` +
+            `<text x="${STRIP_W / 2}" y="${STRIP_H - 35}" font-family="serif" font-size="20" font-style="italic" text-anchor="middle" fill="#C4A882">yshots</text>` +
             `</svg>`
         )}`,
     },
@@ -361,8 +361,8 @@ export const STRIP_FRAMES = [
             `<rect width="${STRIP_W}" height="${STRIP_H}" fill="#fff" rx="4"/>` +
             `<rect x="6" y="6" width="${STRIP_W - 12}" height="${STRIP_H - 12}" rx="4" fill="none" stroke="#e0e0e0" stroke-width="8"/>` +
             stripPhotoCutouts("#f0f0f0", 2, 4) +
-            `<text x="${STRIP_W / 2}" y="${STRIP_H - 55}" font-family="serif" font-size="28" font-style="italic" text-anchor="middle" fill="#FF6B8B">Aura Booth</text>` +
-            `<text x="${STRIP_W / 2}" y="${STRIP_H - 30}" font-family="sans-serif" font-size="13" text-anchor="middle" fill="#ccc">photobooth</text>` +
+            `<text x="${STRIP_W / 2}" y="${STRIP_H - 55}" font-family="serif" font-size="28" font-style="italic" text-anchor="middle" fill="#FF6B8B">yshots</text>` +
+            `<text x="${STRIP_W / 2}" y="${STRIP_H - 30}" font-family="sans-serif" font-size="13" text-anchor="middle" fill="#ccc">yshots</text>` +
             `</svg>`
         )}`,
     },
