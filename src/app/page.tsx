@@ -1,6 +1,7 @@
 import HeroSection from "@/components/HeroSection";
 import Header from "@/components/Header";
 import Photobooth from "@/components/Photobooth";
+import GallerySection from "@/components/GallerySection";
 
 export default function Home() {
   return (
@@ -8,6 +9,7 @@ export default function Home() {
       <Header />
       <HeroSection />
       <Photobooth />
+      <GallerySection />
     </main>
   );
 }

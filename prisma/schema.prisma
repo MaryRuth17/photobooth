@@ -1,0 +1,15 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "node_modules/@prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Photo {
+  id        Int      @id @default(autoincrement())
+  imageData String
+  createdAt DateTime @default(now())
+}
+

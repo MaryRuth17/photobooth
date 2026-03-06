@@ -55,39 +55,50 @@ export function useStudio() {
 
     const onStickerPointerUp = () => setDraggingId(null);
 
-    const exportStudio = (capturedImage: string) => {
-        const container = studioCanvasRef.current;
-        if (!container) return;
-        const rect = container.getBoundingClientRect();
-        const exportCanvas = document.createElement("canvas");
-        const exportCtx = exportCanvas.getContext("2d");
-        if (!exportCtx) return;
-        const baseImg = new Image();
-        baseImg.src = capturedImage;
-        baseImg.onload = () => {
-            exportCanvas.width = baseImg.naturalWidth;
-            exportCanvas.height = baseImg.naturalHeight;
-            exportCtx.drawImage(baseImg, 0, 0);
-            const scaleX = baseImg.naturalWidth / rect.width;
-            const scaleY = baseImg.naturalHeight / rect.height;
-            stickers.forEach(s => {
-                const cx = s.x * scaleX;
-                const cy = s.y * scaleY;
-                const sz = s.size * Math.min(scaleX, scaleY);
-                exportCtx.save();
-                exportCtx.translate(cx, cy);
-                exportCtx.rotate((s.rotation * Math.PI) / 180);
-                exportCtx.font = `${sz}px serif`;
-                exportCtx.textAlign = "center";
-                exportCtx.textBaseline = "middle";
-                exportCtx.fillText(s.emoji, 0, 0);
-                exportCtx.restore();
-            });
-            const a = document.createElement("a");
-            a.href = exportCanvas.toDataURL("image/png");
-            a.download = "aura-photobooth.png";
-            a.click();
-        };
+    const exportStudio = (capturedImage: string): Promise<string | null> => {
+        return new Promise(resolve => {
+            const container = studioCanvasRef.current;
+            if (!container) {
+                resolve(null);
+                return;
+            }
+            const rect = container.getBoundingClientRect();
+            const exportCanvas = document.createElement("canvas");
+            const exportCtx = exportCanvas.getContext("2d");
+            if (!exportCtx) {
+                resolve(null);
+                return;
+            }
+            const baseImg = new Image();
+            baseImg.src = capturedImage;
+            baseImg.onload = () => {
+                exportCanvas.width = baseImg.naturalWidth;
+                exportCanvas.height = baseImg.naturalHeight;
+                exportCtx.drawImage(baseImg, 0, 0);
+                const scaleX = baseImg.naturalWidth / rect.width;
+                const scaleY = baseImg.naturalHeight / rect.height;
+                stickers.forEach(s => {
+                    const cx = s.x * scaleX;
+                    const cy = s.y * scaleY;
+                    const sz = s.size * Math.min(scaleX, scaleY);
+                    exportCtx.save();
+                    exportCtx.translate(cx, cy);
+                    exportCtx.rotate((s.rotation * Math.PI) / 180);
+                    exportCtx.font = `${sz}px serif`;
+                    exportCtx.textAlign = "center";
+                    exportCtx.textBaseline = "middle";
+                    exportCtx.fillText(s.emoji, 0, 0);
+                    exportCtx.restore();
+                });
+                const dataUrl = exportCanvas.toDataURL("image/png");
+                const a = document.createElement("a");
+                a.href = dataUrl;
+                a.download = "aura-photobooth.png";
+                a.click();
+                resolve(dataUrl);
+            };
+            baseImg.onerror = () => resolve(null);
+        });
     };
 
     return {

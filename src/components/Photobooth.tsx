@@ -58,13 +58,15 @@ export default function Photobooth() {
     };
 
     const handleExportStudio = () => {
-        if (!capturedImage) return;
-        exportStudio(capturedImage);
+        if (!capturedImage) {
+            return Promise.resolve(null);
+        }
+        return exportStudio(capturedImage);
     };
 
     if (inStudio && capturedImage) {
         return (
-            <StudioScreen
+                <StudioScreen
                 capturedImage={capturedImage}
                 capturedLayoutId={selectedLayout.id}
                 canvasRef={canvasRef}
@@ -73,10 +75,10 @@ export default function Photobooth() {
                 draggingId={draggingId}
                 onAddSticker={addSticker}
                 onRemoveSticker={removeSticker}
-                onStickerPointerDown={onStickerPointerDown}
+                    onStickerPointerDown={onStickerPointerDown}
                 onStickerPointerMove={onStickerPointerMove}
-                onStickerPointerUp={onStickerPointerUp}
-                onExport={handleExportStudio}
+                    onStickerPointerUp={onStickerPointerUp}
+                    onExport={handleExportStudio}
                 onRetake={handleRetake}
             />
         );

@@ -1,6 +1,7 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Download, Wand2, ChevronLeft } from "lucide-react";
 import { STICKER_PALETTE } from "@/lib/stickers";
 import type { PlacedSticker } from "@/lib/stickers";
@@ -18,7 +19,7 @@ interface StudioScreenProps {
     onStickerPointerDown: (e: React.PointerEvent, id: string) => void;
     onStickerPointerMove: (e: React.PointerEvent) => void;
     onStickerPointerUp: () => void;
-    onExport: () => void;
+    onExport: () => Promise<string | null>;
     onRetake: () => void;
 }
 
@@ -29,6 +30,45 @@ export default function StudioScreen({
     onStickerPointerDown, onStickerPointerMove, onStickerPointerUp,
     onExport, onRetake,
 }: StudioScreenProps) {
+    const [isExporting, setIsExporting] = useState(false);
+    const [showSavePrompt, setShowSavePrompt] = useState(false);
+    const [exportedImage, setExportedImage] = useState<string | null>(null);
+
+    const handleDownload = async () => {
+        if (isExporting) return;
+        setIsExporting(true);
+        try {
+            const dataUrl = await onExport();
+            if (dataUrl) {
+                setExportedImage(dataUrl);
+                setShowSavePrompt(true);
+            }
+        } finally {
+            setIsExporting(false);
+        }
+    };
+
+    const handleSaveToGallery = async () => {
+        if (!exportedImage) {
+            setShowSavePrompt(false);
+            return;
+        }
+        try {
+            await fetch("/api/gallery", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ imageData: exportedImage }),
+            });
+        } catch {
+            // ignore errors for now
+        } finally {
+            setShowSavePrompt(false);
+        }
+    };
+
+    const handleSkipSave = () => {
+        setShowSavePrompt(false);
+    };
     return (
         <motion.section
             key="studio"
@@ -57,10 +97,11 @@ export default function StudioScreen({
                 </div>
                 <motion.button
                     whileHover={{ scale: 1.05, y: -2 }} whileTap={{ scale: 0.95 }}
-                    onClick={onExport}
-                    className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-accent text-white font-medium text-sm shadow-lg shadow-accent/25 hover:bg-accent-hover transition-colors"
+                    onClick={handleDownload}
+                    disabled={isExporting}
+                    className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-accent text-white font-medium text-sm shadow-lg shadow-accent/25 hover:bg-accent-hover transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                    <Download size={16} /> Download
+                    <Download size={16} /> {isExporting ? "Preparing..." : "Download"}
                 </motion.button>
             </div>
 
@@ -154,6 +195,46 @@ export default function StudioScreen({
             </div>
 
             <canvas ref={canvasRef} className="hidden" />
+
+            <AnimatePresence>
+                {showSavePrompt && (
+                    <motion.div
+                        className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            className="w-full max-w-sm rounded-2xl bg-white dark:bg-zinc-900 p-6 shadow-2xl border border-zinc-200 dark:border-zinc-800"
+                        >
+                            <h3 className="font-display text-lg text-foreground mb-2">
+                                Save this photo to our gallery?
+                            </h3>
+                            <p className="text-sm text-foreground/70 font-sans mb-4">
+                                With your permission, we can feature this shot in the public gallery on this site.
+                                You can always download without saving if you prefer.
+                            </p>
+                            <div className="flex justify-end gap-2 mt-2">
+                                <button
+                                    onClick={handleSkipSave}
+                                    className="px-4 py-2 rounded-full text-sm font-medium font-sans border border-zinc-200 dark:border-zinc-700 text-foreground/80 hover:bg-zinc-50 dark:hover:bg-zinc-800"
+                                >
+                                    No, just download
+                                </button>
+                                <button
+                                    onClick={handleSaveToGallery}
+                                    className="px-4 py-2 rounded-full text-sm font-medium font-sans bg-accent text-white hover:bg-accent-hover"
+                                >
+                                    Yes, add to gallery
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </motion.section>
     );
 }
