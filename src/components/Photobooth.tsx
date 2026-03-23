@@ -87,17 +87,16 @@ export default function Photobooth() {
     return (
         <section
             id="booth"
-            className="flex flex-col overflow-hidden bg-white dark:bg-[#1A1A1A] scroll-mt-20"
-            style={{ marginTop: 80, height: "calc(100dvh - 80px)" }}
+            className="flex flex-col overflow-hidden bg-white dark:bg-[#1A1A1A] scroll-mt-20 viewport-height"
         >
             <canvas ref={canvasRef} className="hidden" />
 
-            <div className="flex-1 min-h-0 flex flex-col px-4 sm:px-6 py-6 lg:py-14 gap-10 max-w-[1200px] w-full mx-auto">
+            <div className="flex-1 min-h-0 flex flex-col items-center px-4 sm:px-6 py-6 lg:py-14 gap-10">
                 <motion.div
                     initial={{ opacity: 0, y: -16 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.55, ease: "easeOut" }}
-                    className="text-center shrink-0"
+                    className="text-center shrink-0 w-full max-w-6xl"
                 >
                     <h2 className="font-display text-3xl lg:text-4xl mb-1 text-foreground">Yshots Photobooth</h2>
                     <p className="font-sans text-sm text-foreground/60">
@@ -109,7 +108,7 @@ export default function Photobooth() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6, delay: 0.1, ease: "easeOut" }}
-                    className="flex flex-col md:flex-row gap-4 lg:gap-5 flex-1 min-h-0 items-stretch justify-center"
+                    className="flex flex-col md:flex-row gap-4 lg:gap-5 flex-1 min-h-0 items-stretch justify-center w-full max-w-6xl"
                 >
                     <motion.div
                         initial={{ opacity: 0, x: -20 }}

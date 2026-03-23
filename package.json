@@ -13,15 +13,15 @@
     "clsx": "^2.1.1",
     "framer-motion": "^12.34.3",
     "lucide-react": "^0.575.0",
-    "next": "16.1.6",
-    "prisma": "^7.4.2",
+    "next": "^16.2.1",
+    "prisma": "^6.12.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-webcam": "^7.2.0",
     "tailwind-merge": "^3.5.0"
   },
   "devDependencies": {
-    "@prisma/config": "^7.4.2",
+    "@prisma/config": "^6.12.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

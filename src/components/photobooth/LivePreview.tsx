@@ -4,8 +4,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import { STRIP_W, STRIP_H, STRIP_PAD, STRIP_PHOTO_W, STRIP_PHOTO_H, STRIP_GAP } from "@/lib/constants";
 import type { FrameItem } from "@/hooks/useBoothSettings";
 
-const STRIP_PREVIEW_W = 150;
-const PREVIEW_W = 200;
+// Responsive preview widths
+const getPreviewDimensions = (): { strip: number; standard: number } => {
+    // These will be overridden by responsive Tailwind classes
+    // Fallback to desktop sizes
+    return { strip: 150, standard: 200 };
+};
 
 function stripPhotoY(i: number) {
     return STRIP_PAD + i * (STRIP_PHOTO_H + STRIP_GAP);
@@ -48,11 +52,14 @@ export default function LivePreview({
     layoutId, selectedFrame, filterValue,
     capturedSequence, currentShotIndex, isCapturing,
 }: LivePreviewProps) {
-    const outerW = PREVIEW_W;
-    const previewW = layoutId === "strip" ? STRIP_PREVIEW_W : PREVIEW_W;
+    // Responsive preview dimensions - scale based on layout
+    const baseStripW = 150;
+    const baseStandardW = 200;
+
+    const previewW = layoutId === "strip" ? baseStripW : baseStandardW;
     const previewH = layoutId === "strip"
-        ? Math.round(STRIP_PREVIEW_W * (STRIP_H / STRIP_W))
-        : Math.round(PREVIEW_W * (700 / 800));
+        ? Math.round(baseStripW * (STRIP_H / STRIP_W))
+        : Math.round(baseStandardW * (700 / 800));
 
     return (
         <motion.div
@@ -60,8 +67,8 @@ export default function LivePreview({
             initial={{ opacity: 0, x: 24 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.25, ease: "easeOut" }}
-            className="hidden lg:flex flex-col items-center shrink-0 gap-3"
-            style={{ width: outerW }}
+            className="hidden lg:flex flex-col items-center shrink-0 gap-3 md:max-w-[150px]"
+            style={{ width: previewW }}
         >
             <div className="w-full flex items-center justify-between px-1">
                 <span className="text-xs font-sans font-semibold text-foreground/50 uppercase tracking-wider">
@@ -102,7 +109,7 @@ export default function LivePreview({
                 })}
 
                 {/* Grid slots */}
-                {layoutId === "grid" && gridPreviewSlots(PREVIEW_W, previewH).map((slot, i) => {
+                {layoutId === "grid" && gridPreviewSlots(previewW, previewH).map((slot, i) => {
                     const photoSrc = capturedSequence[i];
                     return (
                         <div key={i} className="absolute overflow-hidden rounded-sm z-[5]" style={{ top: slot.top, left: slot.left, width: slot.w, height: slot.h }}>
@@ -119,7 +126,7 @@ export default function LivePreview({
 
                 {/* Single slot */}
                 {layoutId === "single" && (() => {
-                    const slot = singlePreviewSlot(PREVIEW_W, previewH);
+                    const slot = singlePreviewSlot(previewW, previewH);
                     const photoSrc = capturedSequence[0];
                     return (
                         <div className="absolute overflow-hidden rounded-sm z-[5]" style={{ top: slot.top, left: slot.left, width: slot.w, height: slot.h }}>

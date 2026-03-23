@@ -30,6 +30,7 @@ export default function StudioScreen({
     onStickerPointerDown, onStickerPointerMove, onStickerPointerUp,
     onExport, onRetake,
 }: StudioScreenProps) {
+    const [isReviewPhase, setIsReviewPhase] = useState(true);
     const [isExporting, setIsExporting] = useState(false);
     const [showSavePrompt, setShowSavePrompt] = useState(false);
     const [exportedImage, setExportedImage] = useState<string | null>(null);
@@ -69,6 +70,72 @@ export default function StudioScreen({
     const handleSkipSave = () => {
         setShowSavePrompt(false);
     };
+    if (isReviewPhase) {
+        return (
+            <motion.section
+                key="review"
+                id="booth"
+                initial={{ opacity: 0, x: 60 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.45, ease: "easeOut" }}
+                className="flex flex-col overflow-hidden bg-white dark:bg-[#1A1A1A] scroll-mt-20 viewport-height"
+            >
+                {/* Header — Review Phase */}
+                <div className="flex items-center px-6 py-3 border-b border-zinc-100 dark:border-zinc-800 shrink-0">
+                    <h2 className="font-display text-xl text-foreground">Review Your Photo</h2>
+                </div>
+
+                {/* Body — Review Phase */}
+                <div className="flex-1 min-h-0 flex flex-col items-center justify-center gap-6 p-6">
+                    {/* Photo Display */}
+                    <div
+                        ref={studioCanvasRef}
+                        className="relative rounded-2xl overflow-hidden shadow-2xl select-none"
+                        style={{
+                            aspectRatio: capturedLayoutId === "strip" ? `${STRIP_W} / ${STRIP_H}` : "800 / 700",
+                            maxHeight: "calc(100dvh - var(--header-height) - 200px)",
+                            width: "auto",
+                            maxWidth: "100%",
+                        }}
+                    >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                            src={capturedImage}
+                            alt="Your photo"
+                            className="w-full h-full object-cover block"
+                            draggable={false}
+                        />
+                    </div>
+
+                    {/* Keep/Retake Buttons */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.35, delay: 0.2 }}
+                        className="flex gap-3 justify-center"
+                    >
+                        <motion.button
+                            whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                            onClick={onRetake}
+                            className="px-6 py-3 rounded-full border border-zinc-200 dark:border-zinc-700 text-foreground font-medium text-sm hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors"
+                        >
+                            <ChevronLeft size={16} className="inline mr-1" /> Retake
+                        </motion.button>
+                        <motion.button
+                            whileHover={{ scale: 1.05, y: -2 }} whileTap={{ scale: 0.95 }}
+                            onClick={() => setIsReviewPhase(false)}
+                            className="px-6 py-3 rounded-full bg-accent text-white font-medium text-sm shadow-lg shadow-accent/25 hover:bg-accent-hover transition-colors"
+                        >
+                            Keep Photo
+                        </motion.button>
+                    </motion.div>
+                </div>
+
+                <canvas ref={canvasRef} className="hidden" />
+            </motion.section>
+        );
+    }
+
     return (
         <motion.section
             key="studio"
@@ -76,18 +143,17 @@ export default function StudioScreen({
             initial={{ opacity: 0, x: 60 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.45, ease: "easeOut" }}
-            className="flex flex-col overflow-hidden bg-white dark:bg-[#1A1A1A] scroll-mt-20"
-            style={{ marginTop: 80, height: "calc(100dvh - 80px)" }}
+            className="flex flex-col overflow-hidden bg-white dark:bg-[#1A1A1A] scroll-mt-20 viewport-height"
         >
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-3 border-b border-zinc-100 dark:border-zinc-800 shrink-0">
                 <div className="flex items-center gap-3">
                     <motion.button
                         whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
-                        onClick={onRetake}
+                        onClick={() => setIsReviewPhase(true)}
                         className="flex items-center gap-1.5 text-sm font-medium text-foreground/60 hover:text-foreground transition-colors"
                     >
-                        <ChevronLeft size={18} /> Retake
+                        <ChevronLeft size={18} /> Back to Review
                     </motion.button>
                     <span className="text-foreground/20 select-none">|</span>
                     <div className="flex items-center gap-2">
@@ -152,7 +218,7 @@ export default function StudioScreen({
                         className="relative rounded-2xl overflow-hidden shadow-2xl select-none"
                         style={{
                             aspectRatio: capturedLayoutId === "strip" ? `${STRIP_W} / ${STRIP_H}` : "800 / 700",
-                            maxHeight: "calc(100dvh - 220px)",
+                            maxHeight: "calc(100dvh - var(--header-height) - 180px)",
                             width: "auto",
                             maxWidth: "100%",
                         }}

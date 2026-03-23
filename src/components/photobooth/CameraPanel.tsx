@@ -22,11 +22,11 @@ export default function CameraPanel({
             initial={{ opacity: 0, scale: 0.96, y: 16 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ duration: 0.7, ease: "easeOut" }}
-            className="relative flex w-full justify-center"
+            className="relative flex w-full justify-center px-4 sm:px-6 md:px-0"
         >
             {/* Gradient border — glows while capturing */}
             <motion.div
-                className="p-[3px] rounded-[22px] w-[640px] max-w-full"
+                className="p-[3px] rounded-[22px] w-full md:max-w-[640px] lg:max-w-[680px]"
                 animate={{
                     boxShadow: isCapturing
                         ? "0 0 70px rgba(255,107,139,0.65), 0 20px 80px rgba(255,107,139,0.3)"

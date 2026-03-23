@@ -17,6 +17,14 @@
 :root {
   --background: #FDF1F4;
   --foreground: #4A3337;
+
+  /* Responsive Layout Dimensions */
+  --header-height: 5rem; /* 80px - matches Header h-20 */
+
+  /* Layout Aspect Ratios */
+  --aspect-single: 800 / 700; /* Single & Grid frames */
+  --aspect-strip: 480 / 1310; /* Strip frame */
+  --aspect-webcam: 4 / 3; /* Camera feed */
 }
 
 /* Optional dark mode support for soft aesthetic */
@@ -45,3 +53,25 @@ html {
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
+
+/* Responsive Utility Classes */
+
+/* Dynamic viewport height accounting for header */
+.viewport-height {
+  height: calc(100dvh - var(--header-height));
+}
+
+/* Image scaling utilities */
+.image-cover {
+  @apply object-cover;
+}
+
+.image-contain {
+  @apply object-contain;
+}
+
+/* Responsive container width constraint */
+.container-responsive {
+  @apply w-full px-4 sm:px-6 md:px-8 lg:px-10;
+}
+
