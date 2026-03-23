@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { Camera, ChevronDown } from "lucide-react";
+import PixelBlast from "@/components/PixelBlast";
 
 export default function HeroSection() {
     const scrollToBooth = () => {
@@ -23,32 +24,26 @@ export default function HeroSection() {
 
     return (
         <section className="relative z-0 isolate viewport-height flex flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-blush to-rose/30">
-            {/* Background Animated Blobs */}
-            <motion.div
-                className="absolute z-0 pointer-events-none top-1/4 left-1/4 w-96 h-96 bg-rose/40 rounded-full blur-3xl mix-blend-multiply"
-                animate={{
-                    x: [0, 50, 0],
-                    y: [0, 30, 0],
-                    scale: [1, 1.1, 1],
-                }}
-                transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-            />
-            <motion.div
-                className="absolute z-0 pointer-events-none bottom-1/4 right-1/4 w-96 h-96 bg-accent/20 rounded-full blur-3xl mix-blend-multiply"
-                animate={{
-                    x: [0, -40, 0],
-                    y: [0, -50, 0],
-                    scale: [1, 1.2, 1],
-                }}
-                transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-            />
-            <motion.div
-                className="absolute z-0 pointer-events-none top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg h-[500px] bg-petal/60 rounded-full blur-3xl mix-blend-multiply"
-                animate={{
-                    rotate: [0, 90, 180, 270, 360],
-                }}
-                transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-            />
+            <div className="absolute inset-0 z-0 flex items-center justify-center">
+                <div style={{ width: "1080px", height: "1080px", position: "relative" }}>
+                    <PixelBlast
+                        variant="square"
+                        pixelSize={3}
+                        color="#d65ca9"
+                        patternScale={2}
+                        patternDensity={1}
+                        enableRipples
+                        rippleSpeed={0.3}
+                        rippleThickness={0.1}
+                        rippleIntensityScale={1}
+                        speed={0.5}
+                        transparent
+                        edgeFade={0.5}
+                    />
+                </div>
+            </div>
+
+            <div className="absolute inset-0 z-0 bg-gradient-to-br from-blush/55 via-blush/20 to-rose/35 pointer-events-none" />
 
             <div className="relative z-10 flex flex-col items-center text-center px-6">
                 <motion.div

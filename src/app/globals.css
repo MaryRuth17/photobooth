@@ -5,7 +5,7 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-inter);
   --font-display: var(--font-playfair);
-  
+
   --color-blush: #FDF1F4;
   --color-blush-light: #FFF8FA;
   --color-rose: #F4D1D6;
@@ -239,4 +239,3 @@ html {
     transform: translateX(-0.5px);
   }
 }
-
