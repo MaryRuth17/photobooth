@@ -5,7 +5,7 @@ import GallerySection from "@/components/GallerySection";
 
 export default function Home() {
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen bg-[#fdf1f4]">
       <Header />
       <HeroSection />
       <Photobooth />

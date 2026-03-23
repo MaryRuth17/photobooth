@@ -25,10 +25,10 @@ export default function ToolsPanel({
     frames,
 }: ToolsPanelProps) {
     return (
-        <div className="bg-white dark:bg-zinc-900 rounded-3xl shadow-xl overflow-hidden border border-zinc-100 dark:border-zinc-800">
+        <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-zinc-100">
 
             {/* Tab bar */}
-            <div className="flex border-b border-zinc-100 dark:border-zinc-800">
+            <div className="flex border-b border-zinc-100">
                 {([
                     { key: "layout" as const, icon: <LayoutGrid size={18} />, label: "Layout" },
                     { key: "filter" as const, icon: <Sparkles   size={18} />, label: "Filter"  },
@@ -41,7 +41,7 @@ export default function ToolsPanel({
                         className={`flex-1 flex items-center justify-center gap-1.5 py-4 font-sans font-medium transition-colors relative text-sm ${
                             activeTab === tab.key
                                 ? "text-accent bg-accent/5"
-                                : "text-foreground/60 hover:text-foreground hover:bg-zinc-50 dark:hover:bg-zinc-800"
+                                : "text-foreground/60 hover:text-foreground hover:bg-zinc-50"
                         }`}
                     >
                         {tab.icon} {tab.label}
@@ -69,8 +69,8 @@ export default function ToolsPanel({
                                     onClick={() => onLayoutChange(layout)}
                                     className={`w-full flex items-center justify-between gap-2 px-5 py-3.5 rounded-2xl border-2 transition-all ${
                                         selectedLayout.id === layout.id
-                                            ? "border-accent bg-blush text-accent dark:bg-accent/10"
-                                            : "border-zinc-200 dark:border-zinc-700 hover:border-accent hover:bg-zinc-50 text-foreground dark:hover:bg-zinc-800"
+                                            ? "border-accent bg-blush text-accent"
+                                            : "border-zinc-200 hover:border-accent hover:bg-zinc-50 text-foreground"
                                     }`}
                                 >
                                     <span className="font-sans font-medium">{layout.name}</span>
@@ -91,7 +91,7 @@ export default function ToolsPanel({
                                     className={`w-full px-5 py-3 rounded-xl font-sans text-sm transition-all border text-left ${
                                         selectedFilter.id === filter.id
                                             ? "bg-foreground text-background shadow-lg border-foreground"
-                                            : "bg-white text-foreground border-zinc-200 hover:border-zinc-300 dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-300"
+                                            : "bg-white text-foreground border-zinc-200 hover:border-zinc-300"
                                     }`}
                                 >
                                     {filter.name}
@@ -108,10 +108,10 @@ export default function ToolsPanel({
                                     initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.04 }}
                                     whileHover={{ scale: 1.06, y: -2 }} whileTap={{ scale: 0.94 }}
                                     onClick={() => onFrameChange(frame)}
-                                    className={`aspect-square rounded-xl border-2 transition-all overflow-hidden relative bg-zinc-50 dark:bg-zinc-800 flex items-center justify-center ${
+                                    className={`aspect-square rounded-xl border-2 transition-all overflow-hidden relative bg-zinc-50 flex items-center justify-center ${
                                         selectedFrame.id === frame.id
                                             ? "border-accent ring-4 ring-accent/20 shadow-md"
-                                            : "border-transparent hover:border-zinc-300 dark:hover:border-zinc-500"
+                                            : "border-transparent hover:border-zinc-300"
                                     }`}
                                 >
                                     {frame.url ? (

@@ -5,14 +5,27 @@ import { Camera, ChevronDown } from "lucide-react";
 
 export default function HeroSection() {
     const scrollToBooth = () => {
-        document.getElementById("booth")?.scrollIntoView({ behavior: "smooth" });
+        const target = document.getElementById("booth");
+        if (!target) return;
+
+        const headerHeightValue = getComputedStyle(document.documentElement)
+            .getPropertyValue("--header-height")
+            .trim();
+        const parsedHeaderHeight = Number.parseFloat(headerHeightValue);
+        const fallbackHeaderHeight = Number.isFinite(parsedHeaderHeight) ? parsedHeaderHeight : 80;
+        const headerElement = document.querySelector("header");
+        const renderedHeaderHeight = headerElement?.getBoundingClientRect().height ?? fallbackHeaderHeight;
+        const breathingRoom = 16;
+        const top = target.getBoundingClientRect().top + window.scrollY - renderedHeaderHeight - breathingRoom;
+
+        window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
     };
 
     return (
-        <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-blush to-rose/30">
+        <section className="relative z-0 isolate viewport-height flex flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-blush to-rose/30">
             {/* Background Animated Blobs */}
             <motion.div
-                className="absolute top-1/4 left-1/4 w-96 h-96 bg-rose/40 rounded-full blur-3xl mix-blend-multiply"
+                className="absolute z-0 pointer-events-none top-1/4 left-1/4 w-96 h-96 bg-rose/40 rounded-full blur-3xl mix-blend-multiply"
                 animate={{
                     x: [0, 50, 0],
                     y: [0, 30, 0],
@@ -21,7 +34,7 @@ export default function HeroSection() {
                 transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
             />
             <motion.div
-                className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-accent/20 rounded-full blur-3xl mix-blend-multiply"
+                className="absolute z-0 pointer-events-none bottom-1/4 right-1/4 w-96 h-96 bg-accent/20 rounded-full blur-3xl mix-blend-multiply"
                 animate={{
                     x: [0, -40, 0],
                     y: [0, -50, 0],
@@ -30,7 +43,7 @@ export default function HeroSection() {
                 transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
             />
             <motion.div
-                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg h-[500px] bg-petal/60 rounded-full blur-3xl mix-blend-multiply"
+                className="absolute z-0 pointer-events-none top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg h-[500px] bg-petal/60 rounded-full blur-3xl mix-blend-multiply"
                 animate={{
                     rotate: [0, 90, 180, 270, 360],
                 }}

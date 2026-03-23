@@ -78,10 +78,11 @@ export default function StudioScreen({
                 initial={{ opacity: 0, x: 60 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.45, ease: "easeOut" }}
-                className="flex flex-col overflow-hidden bg-white dark:bg-[#1A1A1A] scroll-mt-20 viewport-height"
+                style={{ scrollMarginTop: "calc(var(--header-height) + 1.25rem)" }}
+                className="flex flex-col overflow-hidden bg-gradient-to-b from-[#fdf1f4] to-[#fbe8f1] viewport-height"
             >
                 {/* Header — Review Phase */}
-                <div className="flex items-center px-6 py-3 border-b border-zinc-100 dark:border-zinc-800 shrink-0">
+                <div className="flex items-center px-6 py-3 border-b border-zinc-100 shrink-0">
                     <h2 className="font-display text-xl text-foreground">Review Your Photo</h2>
                 </div>
 
@@ -117,7 +118,7 @@ export default function StudioScreen({
                         <motion.button
                             whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
                             onClick={onRetake}
-                            className="px-6 py-3 rounded-full border border-zinc-200 dark:border-zinc-700 text-foreground font-medium text-sm hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors"
+                            className="px-6 py-3 rounded-full border border-zinc-200 text-foreground font-medium text-sm hover:bg-zinc-50 transition-colors"
                         >
                             <ChevronLeft size={16} className="inline mr-1" /> Retake
                         </motion.button>
@@ -143,10 +144,11 @@ export default function StudioScreen({
             initial={{ opacity: 0, x: 60 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.45, ease: "easeOut" }}
-            className="flex flex-col overflow-hidden bg-white dark:bg-[#1A1A1A] scroll-mt-20 viewport-height"
+            style={{ scrollMarginTop: "calc(var(--header-height) + 1.25rem)" }}
+            className="flex flex-col overflow-hidden bg-gradient-to-b from-[#fdf1f4] to-[#fbe8f1] viewport-height"
         >
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-3 border-b border-zinc-100 dark:border-zinc-800 shrink-0">
+            <div className="flex items-center justify-between px-6 py-3 border-b border-zinc-100 shrink-0">
                 <div className="flex items-center gap-3">
                     <motion.button
                         whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
@@ -177,14 +179,14 @@ export default function StudioScreen({
                 {/* Sticker palette — desktop sidebar */}
                 <div className="hidden lg:flex flex-col shrink-0 w-52 gap-3">
                     <p className="text-xs font-sans font-semibold text-foreground/50 uppercase tracking-wider px-1">Stickers</p>
-                    <div className="flex-1 overflow-y-auto rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-3">
+                    <div className="flex-1 overflow-y-auto rounded-2xl border border-zinc-100 bg-white p-3">
                         <div className="grid grid-cols-4 gap-2">
                             {STICKER_PALETTE.map(s => (
                                 <motion.button
                                     key={s.id}
                                     whileHover={{ scale: 1.2, y: -3 }} whileTap={{ scale: 0.9 }}
                                     onClick={() => onAddSticker(s.emoji)}
-                                    className="aspect-square text-2xl flex items-center justify-center rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors select-none"
+                                    className="aspect-square text-2xl flex items-center justify-center rounded-xl hover:bg-zinc-50 transition-colors select-none"
                                     title={`Add ${s.id}`}
                                 >
                                     {s.emoji}
@@ -205,7 +207,7 @@ export default function StudioScreen({
                                 key={s.id}
                                 whileTap={{ scale: 0.9 }}
                                 onClick={() => onAddSticker(s.emoji)}
-                                className="text-2xl shrink-0 w-10 h-10 flex items-center justify-center rounded-xl bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 shadow-sm select-none"
+                                className="text-2xl shrink-0 w-10 h-10 flex items-center justify-center rounded-xl bg-white border border-zinc-100 shadow-sm select-none"
                             >
                                 {s.emoji}
                             </motion.button>
@@ -274,7 +276,7 @@ export default function StudioScreen({
                             initial={{ scale: 0.9, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             exit={{ scale: 0.9, opacity: 0 }}
-                            className="w-full max-w-sm rounded-2xl bg-white dark:bg-zinc-900 p-6 shadow-2xl border border-zinc-200 dark:border-zinc-800"
+                            className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl border border-zinc-200"
                         >
                             <h3 className="font-display text-lg text-foreground mb-2">
                                 Save this photo to our gallery?
@@ -286,7 +288,7 @@ export default function StudioScreen({
                             <div className="flex justify-end gap-2 mt-2">
                                 <button
                                     onClick={handleSkipSave}
-                                    className="px-4 py-2 rounded-full text-sm font-medium font-sans border border-zinc-200 dark:border-zinc-700 text-foreground/80 hover:bg-zinc-50 dark:hover:bg-zinc-800"
+                                    className="px-4 py-2 rounded-full text-sm font-medium font-sans border border-zinc-200 text-foreground/80 hover:bg-zinc-50"
                                 >
                                     No, just download
                                 </button>

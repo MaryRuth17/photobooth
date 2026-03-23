@@ -67,7 +67,7 @@ export default function LivePreview({
             initial={{ opacity: 0, x: 24 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.25, ease: "easeOut" }}
-            className="hidden lg:flex flex-col items-center shrink-0 gap-3 md:max-w-[150px]"
+            className="hidden xl:flex flex-col items-center shrink-0 gap-3"
             style={{ width: previewW }}
         >
             <div className="w-full flex items-center justify-between px-1">

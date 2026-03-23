@@ -87,34 +87,25 @@ export default function Photobooth() {
     return (
         <section
             id="booth"
-            className="flex flex-col overflow-hidden bg-white dark:bg-[#1A1A1A] scroll-mt-20 viewport-height"
+            style={{ scrollMarginTop: "calc(var(--header-height) + 1rem)" }}
+            className="relative z-20 isolate flex flex-col overflow-x-hidden overflow-y-visible min-h-[calc(100dvh-var(--header-height))]"
         >
+            <div className="absolute inset-0 -z-10 bg-gradient-to-b from-[#fdf1f4] to-[#fbe8f1]" aria-hidden="true" />
             <canvas ref={canvasRef} className="hidden" />
 
-            <div className="flex-1 min-h-0 flex flex-col items-center px-4 sm:px-6 py-6 lg:py-14 gap-10">
-                <motion.div
-                    initial={{ opacity: 0, y: -16 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.55, ease: "easeOut" }}
-                    className="text-center shrink-0 w-full max-w-6xl"
-                >
-                    <h2 className="font-display text-3xl lg:text-4xl mb-1 text-foreground">Yshots Photobooth</h2>
-                    <p className="font-sans text-sm text-foreground/60">
-                        Customize your shot with layouts, filters &amp; frames
-                    </p>
-                </motion.div>
+            <div className="relative z-10 flex-1 min-h-0 flex flex-col justify-center items-center px-4 sm:px-6 pt-4 lg:pt-6 pb-6 lg:pb-10 gap-4 lg:gap-5">
 
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6, delay: 0.1, ease: "easeOut" }}
-                    className="flex flex-col md:flex-row gap-4 lg:gap-5 flex-1 min-h-0 items-center justify-center w-full max-w-6xl"
+                    className="w-full max-w-[1240px] grid grid-cols-1 xl:grid-cols-[16rem_minmax(0,44rem)_13rem] gap-4 lg:gap-6 items-start justify-items-center"
                 >
                     <motion.div
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.55, delay: 0.2, ease: "easeOut" }}
-                        className="flex flex-col gap-3 w-full md:w-56 lg:w-64 shrink-0 order-2 md:order-1 overflow-y-auto"
+                        className="flex flex-col gap-3 w-full xl:w-64 shrink-0 order-2 xl:order-1"
                     >
                         <ToolsPanel
                             activeTab={activeTab}
@@ -135,7 +126,7 @@ export default function Photobooth() {
                         />
                     </motion.div>
 
-                    <div className="flex gap-3 lg:gap-4 flex-1 min-h-0 min-w-0 items-center justify-center order-1 md:order-2">
+                    <div className="flex min-w-0 w-full max-w-[44rem] items-start justify-center order-1 xl:order-2">
                         <CameraPanel
                             webcamRef={webcamRef}
                             filterValue={selectedFilter.value}
@@ -145,7 +136,9 @@ export default function Photobooth() {
                             capturedCount={capturedCount}
                             countdown={countdown}
                         />
+                    </div>
 
+                    <div className="hidden xl:flex w-full justify-center order-3">
                         <LivePreview
                             layoutId={selectedLayout.id}
                             selectedFrame={selectedFrame}

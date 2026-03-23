@@ -115,6 +115,32 @@ export function useCapture({ selectedLayout, selectedFilter, selectedFrame, onCa
             })
         );
 
+        const drawImageCover = (
+            image: HTMLImageElement,
+            dx: number,
+            dy: number,
+            dw: number,
+            dh: number
+        ) => {
+            const sourceRatio = image.naturalWidth / image.naturalHeight;
+            const targetRatio = dw / dh;
+
+            let sx = 0;
+            let sy = 0;
+            let sw = image.naturalWidth;
+            let sh = image.naturalHeight;
+
+            if (sourceRatio > targetRatio) {
+                sw = sh * targetRatio;
+                sx = (image.naturalWidth - sw) / 2;
+            } else {
+                sh = sw / targetRatio;
+                sy = (image.naturalHeight - sh) / 2;
+            }
+
+            ctx.drawImage(image, sx, sy, sw, sh, dx, dy, dw, dh);
+        };
+
         const drawPhotos = (images: HTMLImageElement[]) => {
             ctx.filter = selectedFilter.value !== "none" ? selectedFilter.value : "none";
             images.forEach((img, index) => {
@@ -136,7 +162,7 @@ export function useCapture({ selectedLayout, selectedFilter, selectedFrame, onCa
                 ctx.save();
                 ctx.translate(dx + dw, dy);
                 ctx.scale(-1, 1);
-                ctx.drawImage(img, 0, 0, dw, dh);
+                drawImageCover(img, 0, 0, dw, dh);
                 ctx.restore();
             });
             ctx.filter = "none";
