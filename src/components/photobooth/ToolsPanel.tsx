@@ -57,7 +57,7 @@ export default function ToolsPanel({
             </div>
 
             {/* Tab content */}
-            <div className="p-4 md:p-5 overflow-y-auto max-h-[60vh] md:max-h-[400px]">
+            <div className="p-4 md:p-5 overflow-y-auto h-[320px] md:h-[400px]">
                 <AnimatePresence mode="wait" initial={false}>
                     {activeTab === "layout" && (
                         <motion.div key="layout" initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 16 }} transition={{ duration: 0.2 }} className="flex flex-col gap-3">

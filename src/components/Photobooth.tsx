@@ -108,7 +108,7 @@ export default function Photobooth() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6, delay: 0.1, ease: "easeOut" }}
-                    className="flex flex-col md:flex-row gap-4 lg:gap-5 flex-1 min-h-0 items-stretch justify-center w-full max-w-6xl"
+                    className="flex flex-col md:flex-row gap-4 lg:gap-5 flex-1 min-h-0 items-center justify-center w-full max-w-6xl"
                 >
                     <motion.div
                         initial={{ opacity: 0, x: -20 }}

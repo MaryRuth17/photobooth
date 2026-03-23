@@ -93,7 +93,7 @@ export default function LivePreview({
 
                 {/* Strip slots */}
                 {layoutId === "strip" && [0, 1, 2, 3].map(i => {
-                    const scale = STRIP_PREVIEW_W / STRIP_W;
+                    const scale = baseStripW / STRIP_W;
                     const photoSrc = capturedSequence[i];
                     return (
                         <div key={i} className="absolute overflow-hidden rounded-sm z-[20]" style={{ top: stripPhotoY(i) * scale, left: STRIP_PAD * scale, width: STRIP_PHOTO_W * scale, height: STRIP_PHOTO_H * scale }}>
