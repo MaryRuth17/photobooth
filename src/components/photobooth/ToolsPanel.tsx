@@ -1,8 +1,9 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { LayoutGrid, Sparkles, Image as ImageIcon } from "lucide-react";
+import { LayoutGrid, Sparkles, Image as ImageIcon, Smile, X } from "lucide-react";
 import { LAYOUTS, FILTERS } from "@/lib/constants";
+import { FACE_FILTERS, FaceFilter, PLACEMENT_DEFAULTS } from "@/lib/faceFilters";
 import type { ActiveTab, FrameItem } from "@/hooks/useBoothSettings";
 
 interface ToolsPanelProps {
@@ -15,6 +16,8 @@ interface ToolsPanelProps {
     selectedFrame: FrameItem;
     onFrameChange: (frame: FrameItem) => void;
     frames: FrameItem[];
+    selectedFaceFilter: FaceFilter;
+    onFaceFilterChange: (filter: FaceFilter) => void;
 }
 
 export default function ToolsPanel({
@@ -23,6 +26,7 @@ export default function ToolsPanel({
     selectedFilter, onFilterChange,
     selectedFrame, onFrameChange,
     frames,
+    selectedFaceFilter, onFaceFilterChange,
 }: ToolsPanelProps) {
     return (
         <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-zinc-100">
@@ -33,18 +37,19 @@ export default function ToolsPanel({
                     { key: "layout" as const, icon: <LayoutGrid size={18} />, label: "Layout" },
                     { key: "filter" as const, icon: <Sparkles   size={18} />, label: "Filter"  },
                     { key: "frame"  as const, icon: <ImageIcon   size={18} />, label: "Frame"   },
+                    { key: "faceFilter" as const, icon: <Smile size={18} />, label: "Face" },
                 ]).map(tab => (
                     <motion.button
                         key={tab.key}
                         onClick={() => setActiveTab(tab.key)}
                         whileTap={{ scale: 0.95 }}
-                        className={`flex-1 flex items-center justify-center gap-1.5 py-4 font-sans font-medium transition-colors relative text-sm ${
+                        className={`flex-1 flex items-center justify-center gap-1 py-4 font-sans font-medium transition-colors relative text-xs sm:text-sm ${
                             activeTab === tab.key
                                 ? "text-accent bg-accent/5"
                                 : "text-foreground/60 hover:text-foreground hover:bg-zinc-50"
                         }`}
                     >
-                        {tab.icon} {tab.label}
+                        {tab.icon} <span className="hidden sm:inline">{tab.label}</span>
                         {activeTab === tab.key && (
                             <motion.div
                                 layoutId="tab-indicator"
@@ -128,6 +133,68 @@ export default function ToolsPanel({
                                     )}
                                 </motion.button>
                             ))}
+                        </motion.div>
+                    )}
+
+                    {activeTab === "faceFilter" && (
+                        <motion.div key="faceFilter" initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 16 }} transition={{ duration: 0.2 }} className="flex flex-col gap-4">
+                            <p className="text-xs text-foreground/60 text-center">
+                                AR face filters track your face in real-time
+                            </p>
+                            <div className="grid grid-cols-3 gap-2">
+                                {FACE_FILTERS.map((filter, i) => {
+                                    const isSelected = filter.id === selectedFaceFilter.id;
+                                    const isNone = filter.id === "none";
+
+                                    return (
+                                        <motion.button
+                                            key={filter.id}
+                                            initial={{ opacity: 0, scale: 0.8 }}
+                                            animate={{ opacity: 1, scale: 1 }}
+                                            transition={{ delay: i * 0.03 }}
+                                            whileHover={{ scale: 1.08, y: -2 }}
+                                            whileTap={{ scale: 0.94 }}
+                                            onClick={() => onFaceFilterChange(filter)}
+                                            className={`
+                                                relative aspect-square rounded-xl overflow-hidden
+                                                border-2 transition-all duration-200 bg-zinc-100
+                                                ${isSelected
+                                                    ? "border-accent ring-2 ring-accent/30 shadow-lg"
+                                                    : "border-zinc-200 hover:border-accent/50"
+                                                }
+                                            `}
+                                        >
+                                            {isNone ? (
+                                                <div className="w-full h-full flex items-center justify-center bg-zinc-50">
+                                                    <X className="w-5 h-5 text-zinc-400" />
+                                                </div>
+                                            ) : filter.image ? (
+                                                <img
+                                                    src={filter.image}
+                                                    alt={filter.name}
+                                                    className="w-full h-full object-contain p-2 bg-zinc-50"
+                                                />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center bg-zinc-50">
+                                                    <Smile className="w-5 h-5 text-accent" />
+                                                </div>
+                                            )}
+                                        </motion.button>
+                                    );
+                                })}
+                            </div>
+                            {/* Selected filter name */}
+                            <p className="text-sm font-medium text-center text-foreground">
+                                {selectedFaceFilter.name}
+                            </p>
+                            {/* Placement badge */}
+                            {selectedFaceFilter.id !== "none" && (
+                                <div className="flex justify-center">
+                                    <span className="text-xs px-2 py-1 bg-accent/10 text-accent rounded-full">
+                                        {selectedFaceFilter.placement.replace("-", " ")}
+                                    </span>
+                                </div>
+                            )}
                         </motion.div>
                     )}
                 </AnimatePresence>

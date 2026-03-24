@@ -1,13 +1,15 @@
 import { useState } from "react";
 import { FILTERS, FRAMES, GRID_FRAMES, STRIP_FRAMES, LAYOUTS } from "@/lib/constants";
+import { FACE_FILTERS, FaceFilter } from "@/lib/faceFilters";
 
-export type ActiveTab = "layout" | "filter" | "frame";
+export type ActiveTab = "layout" | "filter" | "frame" | "faceFilter";
 export type FrameItem = { id: string; name: string; url: string | null };
 
 export function useBoothSettings() {
     const [selectedLayout, setSelectedLayout] = useState(LAYOUTS[0]);
     const [selectedFilter, setSelectedFilter] = useState(FILTERS[0]);
     const [selectedFrame, setSelectedFrame] = useState<FrameItem>(FRAMES[0]);
+    const [selectedFaceFilter, setSelectedFaceFilter] = useState<FaceFilter>(FACE_FILTERS[0]);
     const [activeTab, setActiveTab] = useState<ActiveTab>("layout");
 
     const getFramesForLayout = (layoutId: string): FrameItem[] => {
@@ -27,6 +29,7 @@ export function useBoothSettings() {
         selectedLayout,
         selectedFilter, setSelectedFilter,
         selectedFrame, setSelectedFrame,
+        selectedFaceFilter, setSelectedFaceFilter,
         activeTab, setActiveTab,
         currentFrames,
         handleLayoutChange,

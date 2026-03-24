@@ -4,17 +4,20 @@ import { motion } from "framer-motion";
 import ShutterButton from "./photobooth/ShutterButton";
 import LivePreview from "./photobooth/LivePreview";
 import CameraPanel from "./photobooth/CameraPanel";
+import FaceFilterCamera from "./photobooth/FaceFilterCamera";
 import ToolsPanel from "./photobooth/ToolsPanel";
 import StudioScreen from "./photobooth/StudioScreen";
 import { useBoothSettings } from "@/hooks/useBoothSettings";
 import { useCapture } from "@/hooks/useCapture";
 import { useStudio } from "@/hooks/useStudio";
+import { PLACEMENT_DEFAULTS } from "@/lib/faceFilters";
 
 export default function Photobooth() {
     const {
         selectedLayout,
         selectedFilter, setSelectedFilter,
         selectedFrame, setSelectedFrame,
+        selectedFaceFilter, setSelectedFaceFilter,
         activeTab, setActiveTab,
         currentFrames,
         handleLayoutChange,
@@ -32,6 +35,7 @@ export default function Photobooth() {
 
     const {
         webcamRef,
+        faceFilterCameraRef,
         canvasRef,
         capturedImage,
         capturedSequence,
@@ -45,11 +49,20 @@ export default function Photobooth() {
         selectedLayout,
         selectedFilter,
         selectedFrame,
+        selectedFaceFilter,
         onCaptureComplete: () => setInStudio(true),
     });
 
     const shotsTotal = selectedLayout.shots;
     const capturedCount = capturedSequence.length;
+
+    // Check if face filter is active
+    const useFaceFilter = selectedFaceFilter && selectedFaceFilter.id !== "none";
+
+    // Get placement-specific defaults for face filter
+    const placementDefaults = useFaceFilter
+        ? PLACEMENT_DEFAULTS[selectedFaceFilter.placement]
+        : { offsetY: 0, scale: 1 };
 
     const handleRetake = () => {
         setInStudio(false);
@@ -117,6 +130,8 @@ export default function Photobooth() {
                             selectedFrame={selectedFrame}
                             onFrameChange={setSelectedFrame}
                             frames={currentFrames}
+                            selectedFaceFilter={selectedFaceFilter}
+                            onFaceFilterChange={setSelectedFaceFilter}
                         />
 
                         <ShutterButton
@@ -127,15 +142,32 @@ export default function Photobooth() {
                     </motion.div>
 
                     <div className="flex min-w-0 w-full max-w-[44rem] items-start justify-center order-1 xl:order-2">
-                        <CameraPanel
-                            webcamRef={webcamRef}
-                            filterValue={selectedFilter.value}
-                            isCapturing={isCapturing}
-                            shotsTotal={shotsTotal}
-                            currentShotIndex={currentShotIndex}
-                            capturedCount={capturedCount}
-                            countdown={countdown}
-                        />
+                        {useFaceFilter ? (
+                            <FaceFilterCamera
+                                ref={faceFilterCameraRef}
+                                filterValue={selectedFilter.value}
+                                filterImage={selectedFaceFilter.image}
+                                filterPlacement={selectedFaceFilter.placement}
+                                filterScale={selectedFaceFilter.scale ?? placementDefaults.scale}
+                                filterOffsetY={selectedFaceFilter.offsetY ?? placementDefaults.offsetY}
+                                filterOffsetX={selectedFaceFilter.offsetX ?? 0}
+                                isCapturing={isCapturing}
+                                shotsTotal={shotsTotal}
+                                currentShotIndex={currentShotIndex}
+                                capturedCount={capturedCount}
+                                countdown={countdown}
+                            />
+                        ) : (
+                            <CameraPanel
+                                webcamRef={webcamRef}
+                                filterValue={selectedFilter.value}
+                                isCapturing={isCapturing}
+                                shotsTotal={shotsTotal}
+                                currentShotIndex={currentShotIndex}
+                                capturedCount={capturedCount}
+                                countdown={countdown}
+                            />
+                        )}
                     </div>
 
                     <div className="hidden xl:flex w-full justify-center order-3">

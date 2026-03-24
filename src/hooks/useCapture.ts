@@ -1,23 +1,30 @@
 import { useRef, useState, useCallback, useEffect } from "react";
 import Webcam from "react-webcam";
 import { LAYOUTS, FILTERS, STRIP_W, STRIP_H, STRIP_PAD, STRIP_PHOTO_W, STRIP_PHOTO_H, STRIP_GAP } from "@/lib/constants";
+import { FaceFilter } from "@/lib/faceFilters";
 import type { FrameItem } from "./useBoothSettings";
+import type { FaceFilterCameraHandle } from "@/components/photobooth/FaceFilterCamera";
 
 interface UseCaptureOptions {
     selectedLayout: typeof LAYOUTS[number];
     selectedFilter: typeof FILTERS[number];
     selectedFrame: FrameItem;
+    selectedFaceFilter?: FaceFilter;
     onCaptureComplete: () => void;
 }
 
-export function useCapture({ selectedLayout, selectedFilter, selectedFrame, onCaptureComplete }: UseCaptureOptions) {
+export function useCapture({ selectedLayout, selectedFilter, selectedFrame, selectedFaceFilter, onCaptureComplete }: UseCaptureOptions) {
     const webcamRef = useRef<Webcam>(null);
+    const faceFilterCameraRef = useRef<FaceFilterCameraHandle>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [capturedImage, setCapturedImage] = useState<string | null>(null);
     const [capturedSequence, setCapturedSequence] = useState<string[]>([]);
     const [countdown, setCountdown] = useState<number | null>(null);
     const [currentShotIndex, setCurrentShotIndex] = useState(0);
     const [isCapturing, setIsCapturing] = useState(false);
+
+    // Track if we're using face filter
+    const useFaceFilter = selectedFaceFilter && selectedFaceFilter.id !== "none";
 
     const captureSequence = useCallback(() => {
         setCapturedSequence([]);
@@ -50,31 +57,32 @@ export function useCapture({ selectedLayout, selectedFilter, selectedFrame, onCa
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [countdown]);
 
-    const takeSingleSnapshot = () => {
-        const attempt = (retriesLeft: number) => {
-            const webcam = webcamRef.current;
-            if (!webcam) {
-                setIsCapturing(false);
-                setCountdown(null);
-                return;
+    const takeSingleSnapshot = async () => {
+        const attempt = async (retriesLeft: number) => {
+            let imageSrc: string | null = null;
+
+            // Try face filter camera first if available and active
+            if (useFaceFilter && faceFilterCameraRef.current) {
+                imageSrc = await faceFilterCameraRef.current.getScreenshotWithFilter();
             }
 
-            const imageSrc = webcam.getScreenshot();
+            // Fall back to regular webcam
+            if (!imageSrc && webcamRef.current) {
+                imageSrc = webcamRef.current.getScreenshot();
+            }
 
             if (!imageSrc) {
                 if (retriesLeft > 0) {
                     setTimeout(() => attempt(retriesLeft - 1), 150);
                     return;
                 }
-                // If we still can't grab a frame, stop the session gracefully
-                // so the UI doesn't get stuck.
                 setIsCapturing(false);
                 setCountdown(null);
                 return;
             }
 
             setCapturedSequence(prev => {
-                const newSequence = [...prev, imageSrc];
+                const newSequence = [...prev, imageSrc!];
                 if (newSequence.length < selectedLayout.shots) {
                     setTimeout(() => {
                         setCurrentShotIndex(newSequence.length);
@@ -89,8 +97,6 @@ export function useCapture({ selectedLayout, selectedFilter, selectedFrame, onCa
             });
         };
 
-        // Retry a few times in case the webcam frame isn't ready exactly
-        // when the countdown hits zero.
         attempt(3);
     };
 
@@ -142,7 +148,10 @@ export function useCapture({ selectedLayout, selectedFilter, selectedFrame, onCa
         };
 
         const drawPhotos = (images: HTMLImageElement[]) => {
-            ctx.filter = selectedFilter.value !== "none" ? selectedFilter.value : "none";
+            // Only apply CSS filter if NOT using face filter (face filter already has it baked in)
+            const shouldApplyFilter = !useFaceFilter && selectedFilter.value !== "none";
+            ctx.filter = shouldApplyFilter ? selectedFilter.value : "none";
+
             images.forEach((img, index) => {
                 let dx: number, dy: number, dw: number, dh: number;
                 if (selectedLayout.id === "strip") {
@@ -160,9 +169,14 @@ export function useCapture({ selectedLayout, selectedFilter, selectedFrame, onCa
                     dx = 20; dy = 20; dw = 760; dh = 560;
                 }
                 ctx.save();
-                ctx.translate(dx + dw, dy);
-                ctx.scale(-1, 1);
-                drawImageCover(img, 0, 0, dw, dh);
+                // If using face filter, image is already mirrored, don't flip again
+                if (useFaceFilter) {
+                    drawImageCover(img, dx, dy, dw, dh);
+                } else {
+                    ctx.translate(dx + dw, dy);
+                    ctx.scale(-1, 1);
+                    drawImageCover(img, 0, 0, dw, dh);
+                }
                 ctx.restore();
             });
             ctx.filter = "none";
@@ -197,6 +211,7 @@ export function useCapture({ selectedLayout, selectedFilter, selectedFrame, onCa
 
     return {
         webcamRef,
+        faceFilterCameraRef,
         canvasRef,
         capturedImage,
         capturedSequence,
