@@ -25,7 +25,7 @@ export default function HeroSection() {
     return (
         <section className="relative z-0 isolate viewport-height flex flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-blush to-rose/30">
             <div className="absolute inset-0 z-0 flex items-center justify-center">
-                <div style={{ width: "1080px", height: "1080px", position: "relative" }}>
+                <div style={{ width: "min(1080px, 100vw)", height: "min(1080px, 100vh)", position: "relative" }}>
                     <PixelBlast
                         variant="square"
                         pixelSize={3}

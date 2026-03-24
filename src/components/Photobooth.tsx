@@ -88,7 +88,7 @@ export default function Photobooth() {
         <section
             id="booth"
             style={{ scrollMarginTop: "calc(var(--header-height) + 1rem)" }}
-            className="relative z-20 isolate flex flex-col overflow-x-hidden overflow-y-visible min-h-[calc(100dvh-var(--header-height))]"
+            className="relative z-20 isolate flex flex-col overflow-x-hidden overflow-y-visible min-h-[calc(100dvh-var(--header-height))] mt-16 md:mt-20 lg:mt-24"
         >
             <div className="absolute inset-0 -z-10 bg-gradient-to-b from-[#fdf1f4] to-[#fbe8f1]" aria-hidden="true" />
             <canvas ref={canvasRef} className="hidden" />
