@@ -1,6 +1,4 @@
 
-// You can add custom PNG filters to the public/filters/ folder
-
 export interface FaceFilter {
     id: string;
     name: string;
