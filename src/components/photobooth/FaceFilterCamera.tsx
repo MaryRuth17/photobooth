@@ -138,9 +138,10 @@ const FaceFilterCamera = forwardRef<FaceFilterCameraHandle, FaceFilterCameraProp
                     const mirroredCenterX = canvas.width - (region.centerX * scaleX);
                     const centerY = region.centerY * scaleY;
 
-                    // Calculate size based on face dimensions (not region, to keep consistent sizing)
-                    const faceWidth = face.width * scaleX * filterScale;
-                    const faceHeight = face.height * scaleY * filterScale;
+                    // Calculate size based on STABLE face dimensions (rotation-invariant)
+                    // Use stableWidth/stableHeight instead of width/height to prevent size changes during rotation
+                    const faceWidth = face.stableWidth * scaleX * filterScale;
+                    const faceHeight = face.stableHeight * scaleY * filterScale;
 
                     // Maintain aspect ratio of the filter image
                     const imgAspect = img.width / img.height;
@@ -237,8 +238,9 @@ const FaceFilterCamera = forwardRef<FaceFilterCameraHandle, FaceFilterCameraProp
                 const mirroredCenterX = video.videoWidth - region.centerX;
                 const centerY = region.centerY;
 
-                const faceWidth = face.width * filterScale;
-                const faceHeight = face.height * filterScale;
+                // Use stable dimensions for rotation-invariant sizing
+                const faceWidth = face.stableWidth * filterScale;
+                const faceHeight = face.stableHeight * filterScale;
 
                 const imgAspect = img.width / img.height;
                 const faceAspect = faceWidth / faceHeight;

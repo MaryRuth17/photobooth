@@ -9,8 +9,8 @@ export type FilterPlacement = "full-face" | "eyes" | "forehead" | "nose" | "mout
 export interface FaceData {
     x: number;        // Top-left X position
     y: number;        // Top-left Y position
-    width: number;    // Width in pixels
-    height: number;   // Height in pixels
+    width: number;    // Width in pixels (bounding box)
+    height: number;   // Height in pixels (bounding box)
 
     // Center point of the face (for positioning filters)
     centerX: number;  // Horizontal center (used for filter anchoring)
@@ -19,6 +19,10 @@ export interface FaceData {
     rotation: number;
 
     scale: number;
+
+    // Stable dimensions based on Euclidean distance (rotation-invariant)
+    stableWidth: number;   // Distance between cheeks (doesn't change with rotation)
+    stableHeight: number;  // Distance from forehead to chin (doesn't change with rotation)
 
     regions: {
         eyes: { x: number; y: number; width: number; height: number; centerX: number; centerY: number };
@@ -180,6 +184,9 @@ function calculateFaceData(landmarks: { x: number; y: number; z: number }[], vid
         centerY: centerY * videoHeight,
         rotation,
         scale,
+        // Add stable dimensions based on Euclidean distance (rotation-invariant)
+        stableWidth: faceWidth * videoWidth,
+        stableHeight: faceHeight * videoHeight,
         regions: {
             eyes: {
                 x: eyesMinX * videoWidth,

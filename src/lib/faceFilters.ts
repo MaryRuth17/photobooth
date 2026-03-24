@@ -86,7 +86,7 @@ export const FACE_FILTERS: FaceFilter[] = [
         name: "Cat Ears",
         image: SAMPLE_FILTERS.catEars,
         scale: 0.9,
-        offsetY: -120,
+        offsetY: -70,
         placement: "forehead",
     },
     {
@@ -94,7 +94,7 @@ export const FACE_FILTERS: FaceFilter[] = [
         name: "Bunny Ears",
         image: SAMPLE_FILTERS.bunnyEars,
         scale: 1.0,
-        offsetY: -115,
+        offsetY: -70,
         placement: "forehead",
     },
     {
@@ -102,7 +102,7 @@ export const FACE_FILTERS: FaceFilter[] = [
         name: "Bear Ears",
         image: SAMPLE_FILTERS.bearEars,
         scale: 0.9,
-        offsetY: -115,
+        offsetY: -70,
         placement: "forehead",
     },
     {
@@ -110,7 +110,7 @@ export const FACE_FILTERS: FaceFilter[] = [
         name: "Crown",
         image: SAMPLE_FILTERS.crown,
         scale: 0.8,
-        offsetY: -120,
+        offsetY: -70,
         placement: "forehead",
     },
     {
