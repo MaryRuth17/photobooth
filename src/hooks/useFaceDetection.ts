@@ -18,7 +18,17 @@ export interface FaceData {
 
     rotation: number;
 
+    // In-plane roll (same as rotation, exposed for clarity)
+    roll: number;
+
+    // Head pose angles (radians)
+    yaw: number;   // Left/right turning
+    pitch: number; // Up/down nodding
+
     scale: number;
+
+    // Depth-aware size multiplier derived from landmark z-values
+    depthScale: number;
 
     // Stable dimensions based on Euclidean distance (rotation-invariant)
     stableWidth: number;   // Distance between cheeks (doesn't change with rotation)
@@ -97,14 +107,21 @@ function calculateFaceData(landmarks: { x: number; y: number; z: number }[], vid
     const leftCheek = landmarks[LANDMARK_INDICES.LEFT_CHEEK];
     const rightCheek = landmarks[LANDMARK_INDICES.RIGHT_CHEEK];
     const leftEyeOuter = landmarks[LANDMARK_INDICES.LEFT_EYE_OUTER];
-    const rightEyeOuter = landmarks[LANDMARK_INDICES.RIGHT_EYE_OUTER];
+    const leftEyeInner = landmarks[LANDMARK_INDICES.LEFT_EYE_INNER];
+    const leftEyeTop = landmarks[LANDMARK_INDICES.LEFT_EYE_TOP];
     const leftEyeBottom = landmarks[LANDMARK_INDICES.LEFT_EYE_BOTTOM];
+    const rightEyeOuter = landmarks[LANDMARK_INDICES.RIGHT_EYE_OUTER];
+    const rightEyeInner = landmarks[LANDMARK_INDICES.RIGHT_EYE_INNER];
+    const rightEyeTop = landmarks[LANDMARK_INDICES.RIGHT_EYE_TOP];
     const rightEyeBottom = landmarks[LANDMARK_INDICES.RIGHT_EYE_BOTTOM];
+    const leftEyebrowInner = landmarks[LANDMARK_INDICES.LEFT_EYEBROW_INNER];
+    const rightEyebrowInner = landmarks[LANDMARK_INDICES.RIGHT_EYEBROW_INNER];
     const leftEyebrowOuter = landmarks[LANDMARK_INDICES.LEFT_EYEBROW_OUTER];
     const rightEyebrowOuter = landmarks[LANDMARK_INDICES.RIGHT_EYEBROW_OUTER];
     const leftEyebrowTop = landmarks[LANDMARK_INDICES.LEFT_EYEBROW_TOP];
     const rightEyebrowTop = landmarks[LANDMARK_INDICES.RIGHT_EYEBROW_TOP];
     const noseBottom = landmarks[LANDMARK_INDICES.NOSE_BOTTOM];
+    const noseTip = landmarks[LANDMARK_INDICES.NOSE_TIP];
     const noseLeft = landmarks[LANDMARK_INDICES.NOSE_LEFT];
     const noseRight = landmarks[LANDMARK_INDICES.NOSE_RIGHT];
     const noseBridge = landmarks[LANDMARK_INDICES.NOSE_BRIDGE];
@@ -122,103 +139,141 @@ function calculateFaceData(landmarks: { x: number; y: number; z: number }[], vid
         Math.pow(chinBottom.y - foreheadTop.y, 2)
     );
 
+    const avgZ = landmarks.reduce((sum, lm) => sum + lm.z, 0) / landmarks.length;
+
     const centerX = (leftCheek.x + rightCheek.x) / 2;
     const centerY = (foreheadTop.y + chinBottom.y) / 2;
 
-    const eyeDeltaX = rightEyeOuter.x - leftEyeOuter.x;
-    const eyeDeltaY = rightEyeOuter.y - leftEyeOuter.y;
-    const rotation = Math.atan2(eyeDeltaY, eyeDeltaX);
+    // Use both inner/outer + top/bottom eye landmarks for a stable roll estimate
+    const leftEyeCenter = {
+        x: (leftEyeOuter.x + leftEyeInner.x + leftEyeTop.x + leftEyeBottom.x) / 4,
+        y: (leftEyeOuter.y + leftEyeInner.y + leftEyeTop.y + leftEyeBottom.y) / 4,
+    };
+    const rightEyeCenter = {
+        x: (rightEyeOuter.x + rightEyeInner.x + rightEyeTop.x + rightEyeBottom.x) / 4,
+        y: (rightEyeOuter.y + rightEyeInner.y + rightEyeTop.y + rightEyeBottom.y) / 4,
+    };
+    const roll = Math.atan2(rightEyeCenter.y - leftEyeCenter.y, rightEyeCenter.x - leftEyeCenter.x);
 
-    const scale = faceWidth / 0.35;
+    // Approximate head pose using landmark depth
+    const yaw = Math.atan2((rightCheek.z ?? 0) - (leftCheek.z ?? 0), rightCheek.x - leftCheek.x);
+    const pitch = Math.atan2((noseTip.z ?? 0) - (foreheadTop.z ?? 0), Math.max(1e-5, chinBottom.y - foreheadTop.y));
 
-    const eyesMinX = Math.min(leftEyeOuter.x, leftEyebrowOuter.x);
-    const eyesMaxX = Math.max(rightEyeOuter.x, rightEyebrowOuter.x);
-    const eyesMinY = Math.min(leftEyebrowTop.y, rightEyebrowTop.y);
-    const eyesMaxY = Math.max(leftEyeBottom.y, rightEyeBottom.y);
-    const eyesWidth = eyesMaxX - eyesMinX;
-    const eyesHeight = eyesMaxY - eyesMinY;
-    const eyesCenterX = (eyesMinX + eyesMaxX) / 2;
-    const eyesCenterY = (eyesMinY + eyesMaxY) / 2;
+    const cosYaw = Math.max(0.35, Math.abs(Math.cos(yaw)));
+    const cosPitch = Math.max(0.35, Math.abs(Math.cos(pitch)));
 
-    // Forehead region: from top of head to eyebrows
-    const foreheadMinY = foreheadTop.y;
-    const foreheadMaxY = Math.min(leftEyebrowTop.y, rightEyebrowTop.y);
-    const foreheadWidth = faceWidth * 0.9;
-    const foreheadHeight = foreheadMaxY - foreheadMinY;
-    const foreheadCenterX = centerX;
-    const foreheadCenterY = (foreheadMinY + foreheadMaxY) / 2;
+    // Nudge center toward the nose so overlays stick when yawing/tilting (reduced to avoid over-shoot)
+    const yawShift = (noseTip.x - centerX) * 0.16;
+    const pitchShift = (noseTip.y - centerY) * 0.07;
+    const centerXAdjusted = centerX + yawShift;
+    const centerYAdjusted = centerY + pitchShift;
 
-    // Nose region
-    const noseMinX = Math.min(noseLeft.x, noseRight.x);
-    const noseMaxX = Math.max(noseLeft.x, noseRight.x);
-    const noseMinY = noseBridge.y;
-    const noseMaxY = noseBottom.y;
-    const noseWidth = noseMaxX - noseMinX;
-    const noseHeight = noseMaxY - noseMinY;
-    const noseCenterX = (noseMinX + noseMaxX) / 2;
-    const noseCenterY = (noseMinY + noseMaxY) / 2;
+    const scale = (faceWidth / cosYaw) / 0.35;
 
-    // Mouth region
-    const mouthMinX = mouthLeft.x;
-    const mouthMaxX = mouthRight.x;
-    const mouthMinY = mouthTop.y;
-    const mouthMaxY = mouthBottom.y;
-    const mouthWidth = mouthMaxX - mouthMinX;
-    const mouthHeight = mouthMaxY - mouthMinY;
-    const mouthCenterX = (mouthMinX + mouthMaxX) / 2;
-    const mouthCenterY = (mouthMinY + mouthMaxY) / 2;
+    const distance2D = (a: { x: number; y: number }, b: { x: number; y: number }) => Math.hypot(b.x - a.x, b.y - a.y);
+    const averagePoint = (points: { x: number; y: number }[]) => ({
+        x: points.reduce((sum, point) => sum + point.x, 0) / points.length,
+        y: points.reduce((sum, point) => sum + point.y, 0) / points.length,
+    });
+
+    const eyesAnchorPoints = [leftEyeOuter, leftEyeInner, leftEyeTop, leftEyeBottom, rightEyeOuter, rightEyeInner, rightEyeTop, rightEyeBottom];
+    const eyesCenterBase = averagePoint(eyesAnchorPoints);
+    const eyesCenter = {
+        x: eyesCenterBase.x + yawShift,
+        y: eyesCenterBase.y + pitchShift,
+    };
+    const eyesWidth = distance2D(leftEyeOuter, rightEyeOuter);
+    const eyesHeight = (distance2D(leftEyeTop, leftEyeBottom) + distance2D(rightEyeTop, rightEyeBottom)) / 2;
+
+    const eyebrowPoints = [leftEyebrowOuter, leftEyebrowInner, leftEyebrowTop, rightEyebrowOuter, rightEyebrowInner, rightEyebrowTop];
+    const eyebrowMidpoint = averagePoint(eyebrowPoints);
+    const foreheadCenter = {
+        x: (foreheadTop.x + eyebrowMidpoint.x) / 2 + yawShift,
+        y: (foreheadTop.y + eyebrowMidpoint.y) / 2 + pitchShift,
+    };
+    const foreheadWidth = distance2D(leftEyebrowOuter, rightEyebrowOuter);
+    const foreheadHeight = distance2D(foreheadTop, eyebrowMidpoint);
+
+    const noseCenterBase = averagePoint([noseBridge, noseTip, noseBottom, noseLeft, noseRight]);
+    const noseCenter = {
+        x: noseCenterBase.x + yawShift,
+        y: noseCenterBase.y + pitchShift,
+    };
+    const noseWidth = distance2D(noseLeft, noseRight);
+    const noseHeight = distance2D(noseBridge, noseBottom);
+
+    const mouthCenterBase = averagePoint([mouthLeft, mouthRight, mouthTop, mouthBottom]);
+    const mouthCenter = {
+        x: mouthCenterBase.x + yawShift,
+        y: mouthCenterBase.y + pitchShift,
+    };
+    const mouthWidth = distance2D(mouthLeft, mouthRight);
+    const mouthHeight = distance2D(mouthTop, mouthBottom);
+
+    const depthScale = Math.min(1.8, Math.max(0.65, 1 + (-avgZ || 0) * 0.6));
+
+    const widthStretch = 1 / cosYaw;
+    const heightStretch = 1 / cosPitch;
+    const foreheadWidthStretch = Math.min(widthStretch, 1.1);
+    const foreheadHeightStretch = Math.min(heightStretch, 1.08);
 
     // Convert all to pixel coordinates with padding for full face overlay
     const padding = 0.15;
-    const x = (centerX - faceWidth / 2 - padding * faceWidth) * videoWidth;
-    const y = (centerY - faceHeight / 2 - padding * faceHeight) * videoHeight;
-    const width = faceWidth * (1 + padding * 2) * videoWidth;
-    const height = faceHeight * (1 + padding * 2) * videoHeight;
+    const stableWidthNorm = faceWidth * widthStretch;
+    const stableHeightNorm = faceHeight * heightStretch;
+    const x = (centerXAdjusted - stableWidthNorm * (0.5 + padding)) * videoWidth;
+    const y = (centerYAdjusted - stableHeightNorm * (0.5 + padding)) * videoHeight;
+    const width = stableWidthNorm * (1 + padding * 2) * videoWidth;
+    const height = stableHeightNorm * (1 + padding * 2) * videoHeight;
 
     return {
         x,
         y,
         width,
         height,
-        centerX: centerX * videoWidth,
-        centerY: centerY * videoHeight,
-        rotation,
+        centerX: centerXAdjusted * videoWidth,
+        centerY: centerYAdjusted * videoHeight,
+        rotation: roll,
+        roll,
+        yaw,
+        pitch,
         scale,
         // Add stable dimensions based on Euclidean distance (rotation-invariant)
-        stableWidth: faceWidth * videoWidth,
-        stableHeight: faceHeight * videoHeight,
+        stableWidth: stableWidthNorm * videoWidth,
+        stableHeight: stableHeightNorm * videoHeight,
+        depthScale,
         regions: {
             eyes: {
-                x: eyesMinX * videoWidth,
-                y: eyesMinY * videoHeight,
-                width: eyesWidth * videoWidth,
-                height: eyesHeight * videoHeight,
-                centerX: eyesCenterX * videoWidth,
-                centerY: eyesCenterY * videoHeight,
+                x: (eyesCenter.x - (eyesWidth * widthStretch) / 2) * videoWidth,
+                y: (eyesCenter.y - (eyesHeight * heightStretch) / 2) * videoHeight,
+                width: eyesWidth * videoWidth * widthStretch,
+                height: eyesHeight * videoHeight * heightStretch,
+                centerX: eyesCenter.x * videoWidth,
+                centerY: eyesCenter.y * videoHeight,
             },
             forehead: {
-                x: (foreheadCenterX - foreheadWidth / 2) * videoWidth,
-                y: foreheadMinY * videoHeight,
-                width: foreheadWidth * videoWidth,
-                height: foreheadHeight * videoHeight,
-                centerX: foreheadCenterX * videoWidth,
-                centerY: foreheadCenterY * videoHeight,
+                x: (foreheadCenter.x - (foreheadWidth * foreheadWidthStretch) / 2) * videoWidth,
+                y: (foreheadCenter.y - (foreheadHeight * foreheadHeightStretch) / 2) * videoHeight,
+                width: foreheadWidth * videoWidth * foreheadWidthStretch,
+                height: foreheadHeight * videoHeight * foreheadHeightStretch,
+                centerX: foreheadCenter.x * videoWidth,
+                centerY: foreheadCenter.y * videoHeight,
             },
             nose: {
-                x: noseMinX * videoWidth,
-                y: noseMinY * videoHeight,
-                width: noseWidth * videoWidth,
-                height: noseHeight * videoHeight,
-                centerX: noseCenterX * videoWidth,
-                centerY: noseCenterY * videoHeight,
+                x: (noseCenter.x - (noseWidth * widthStretch) / 2) * videoWidth,
+                y: (noseCenter.y - (noseHeight * heightStretch) / 2) * videoHeight,
+                width: noseWidth * videoWidth * widthStretch,
+                height: noseHeight * videoHeight * heightStretch,
+                centerX: noseCenter.x * videoWidth,
+                centerY: noseCenter.y * videoHeight,
             },
             mouth: {
-                x: mouthMinX * videoWidth,
-                y: mouthMinY * videoHeight,
-                width: mouthWidth * videoWidth,
-                height: mouthHeight * videoHeight,
-                centerX: mouthCenterX * videoWidth,
-                centerY: mouthCenterY * videoHeight,
+                x: (mouthCenter.x - (mouthWidth * widthStretch) / 2) * videoWidth,
+                y: (mouthCenter.y - (mouthHeight * heightStretch) / 2) * videoHeight,
+                width: mouthWidth * videoWidth * widthStretch,
+                height: mouthHeight * videoHeight * heightStretch,
+                centerX: mouthCenter.x * videoWidth,
+                centerY: mouthCenter.y * videoHeight,
             },
         },
         landmarks: landmarks,
@@ -330,35 +385,43 @@ export function useFaceDetection(options: UseFaceDetectionOptions = {}): UseFace
                             }));
                             return calculateFaceData(formattedLandmarks, videoWidth, videoHeight);
                         });
-                        // Smooth tracking to avoid jumps when turning sideways
-                        const smoothing = 0.35;
-                        const mix = (a: number, b: number) => a + (b - a) * smoothing;
+                        // Smooth tracking to avoid jumps while staying responsive when scaling/rotating
+                        const smoothingPos = 0.45;
+                        const smoothingScale = 0.6;
+                        const smoothingRot = 0.5;
+                        const mixPos = (a: number, b: number) => a + (b - a) * smoothingPos;
+                        const mixScale = (a: number, b: number) => a + (b - a) * smoothingScale;
+                        const mixRot = (a: number, b: number) => a + (b - a) * smoothingRot;
 
                         const smoothedFaces = faceDataArray.map((face, idx) => {
                             const prev = previousFacesRef.current?.[idx];
                             if (!prev) return face;
 
                             const smoothRegion = (curr: typeof face.regions.eyes, prevRegion: typeof face.regions.eyes) => ({
-                                x: mix(prevRegion.x, curr.x),
-                                y: mix(prevRegion.y, curr.y),
-                                width: mix(prevRegion.width, curr.width),
-                                height: mix(prevRegion.height, curr.height),
-                                centerX: mix(prevRegion.centerX, curr.centerX),
-                                centerY: mix(prevRegion.centerY, curr.centerY),
+                                x: mixPos(prevRegion.x, curr.x),
+                                y: mixPos(prevRegion.y, curr.y),
+                                width: mixScale(prevRegion.width, curr.width),
+                                height: mixScale(prevRegion.height, curr.height),
+                                centerX: mixPos(prevRegion.centerX, curr.centerX),
+                                centerY: mixPos(prevRegion.centerY, curr.centerY),
                             });
 
                             return {
                                 ...face,
-                                x: mix(prev.x, face.x),
-                                y: mix(prev.y, face.y),
-                                width: mix(prev.width, face.width),
-                                height: mix(prev.height, face.height),
-                                centerX: mix(prev.centerX, face.centerX),
-                                centerY: mix(prev.centerY, face.centerY),
-                                rotation: mix(prev.rotation, face.rotation),
-                                scale: mix(prev.scale, face.scale),
-                                stableWidth: mix(prev.stableWidth, face.stableWidth),
-                                stableHeight: mix(prev.stableHeight, face.stableHeight),
+                                x: mixPos(prev.x, face.x),
+                                y: mixPos(prev.y, face.y),
+                                width: mixScale(prev.width, face.width),
+                                height: mixScale(prev.height, face.height),
+                                centerX: mixPos(prev.centerX, face.centerX),
+                                centerY: mixPos(prev.centerY, face.centerY),
+                                rotation: mixRot(prev.rotation, face.rotation),
+                                yaw: mixRot(prev.yaw, face.yaw),
+                                pitch: mixRot(prev.pitch, face.pitch),
+                                roll: mixRot(prev.roll, face.roll),
+                                scale: mixScale(prev.scale, face.scale),
+                                depthScale: mixScale(prev.depthScale, face.depthScale),
+                                stableWidth: mixScale(prev.stableWidth, face.stableWidth),
+                                stableHeight: mixScale(prev.stableHeight, face.stableHeight),
                                 regions: {
                                     eyes: smoothRegion(face.regions.eyes, prev.regions.eyes),
                                     forehead: smoothRegion(face.regions.forehead, prev.regions.forehead),

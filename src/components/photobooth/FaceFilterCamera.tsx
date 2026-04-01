@@ -129,6 +129,7 @@ const FaceFilterCamera = forwardRef<FaceFilterCameraHandle, FaceFilterCameraProp
 
                 faces.forEach((face: FaceData) => {
                     const img = filterImageRef.current!;
+                    const roll = face.roll ?? face.rotation ?? 0;
 
                     // Get the appropriate region based on filter placement
                     const region = getRegionForPlacement(face, filterPlacement);
@@ -139,8 +140,9 @@ const FaceFilterCamera = forwardRef<FaceFilterCameraHandle, FaceFilterCameraProp
 
                     // Calculate size based on STABLE face dimensions (rotation-invariant)
                     // Use stableWidth/stableHeight instead of width/height to prevent size changes during rotation
-                    const faceWidth = face.stableWidth * scaleX * filterScale;
-                    const faceHeight = face.stableHeight * scaleY * filterScale;
+                    const depthScale = face.depthScale ?? 1;
+                    const faceWidth = face.stableWidth * scaleX * filterScale * depthScale;
+                    const faceHeight = face.stableHeight * scaleY * filterScale * depthScale;
 
                     // Maintain aspect ratio of the filter image
                     const imgAspect = img.width / img.height;
@@ -164,7 +166,7 @@ const FaceFilterCamera = forwardRef<FaceFilterCameraHandle, FaceFilterCameraProp
                     // 1. Translate to mirrored face center
                     ctx.translate(centerX, centerY);
                     // 2. Apply rotation inverted to account for mirror
-                    ctx.rotate(-face.rotation);
+                    ctx.rotate(-roll);
                     // 3. Apply offset in rotated coordinate space (so offset follows face tilt)
                     ctx.translate(-filterOffsetX, filterOffsetY);
                     // 4. Draw image centered at this point
@@ -181,7 +183,7 @@ const FaceFilterCamera = forwardRef<FaceFilterCameraHandle, FaceFilterCameraProp
 
                         ctx.fillStyle = "#FF6B8B";
                         ctx.font = "12px monospace";
-                        ctx.fillText(`Rotation: ${(face.rotation * 180 / Math.PI).toFixed(1)}°`, debugX, debugY - 5);
+                        ctx.fillText(`Rotation: ${(roll * 180 / Math.PI).toFixed(1)}°`, debugX, debugY - 5);
                     }
                 });
             }
@@ -228,6 +230,7 @@ const FaceFilterCamera = forwardRef<FaceFilterCameraHandle, FaceFilterCameraProp
         if (filterLoaded && filterImageRef.current && faces.length > 0) {
             faces.forEach((face: FaceData) => {
                 const img = filterImageRef.current!;
+                const roll = face.roll ?? face.rotation ?? 0;
 
                 // Get the appropriate region based on filter placement
                 const region = getRegionForPlacement(face, filterPlacement);
@@ -237,8 +240,9 @@ const FaceFilterCamera = forwardRef<FaceFilterCameraHandle, FaceFilterCameraProp
                 const centerY = region.centerY;
 
                 // Use stable dimensions for rotation-invariant sizing
-                const faceWidth = face.stableWidth * filterScale;
-                const faceHeight = face.stableHeight * filterScale;
+                const depthScale = face.depthScale ?? 1;
+                const faceWidth = face.stableWidth * filterScale * depthScale;
+                const faceHeight = face.stableHeight * filterScale * depthScale;
 
                 const imgAspect = img.width / img.height;
                 const faceAspect = faceWidth / faceHeight;
@@ -259,7 +263,7 @@ const FaceFilterCamera = forwardRef<FaceFilterCameraHandle, FaceFilterCameraProp
                 // 1. Translate to mirrored face center
                 ctx.translate(centerX, centerY);
                 // 2. Apply rotation inverted for mirror
-                ctx.rotate(-face.rotation);
+                ctx.rotate(-roll);
                 // 3. Apply offset in rotated coordinate space
                 ctx.translate(-filterOffsetX, filterOffsetY);
                 // 4. Draw image centered at this point
