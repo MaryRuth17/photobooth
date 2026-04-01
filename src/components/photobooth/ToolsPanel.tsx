@@ -29,10 +29,10 @@ export default function ToolsPanel({
     selectedFaceFilter, onFaceFilterChange,
 }: ToolsPanelProps) {
     return (
-        <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-zinc-100">
+        <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-zinc-100 h-full min-h-[420px] max-h-[420px] md:min-h-[460px] md:max-h-[460px] xl:min-h-[460px] xl:max-h-[460px] flex flex-col">
 
             {/* Tab bar */}
-            <div className="flex border-b border-zinc-100">
+            <div className="flex border-b border-zinc-100 px-2 py-1 gap-1">
                 {([
                     { key: "layout" as const, icon: <LayoutGrid size={18} />, label: "Layout" },
                     { key: "filter" as const, icon: <Sparkles   size={18} />, label: "Filter"  },
@@ -43,7 +43,7 @@ export default function ToolsPanel({
                         key={tab.key}
                         onClick={() => setActiveTab(tab.key)}
                         whileTap={{ scale: 0.95 }}
-                        className={`flex-1 flex items-center justify-center gap-1 py-4 font-sans font-medium transition-colors relative text-xs sm:text-sm ${
+                        className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-3.5 font-sans font-medium transition-colors relative rounded-xl text-[11px] sm:text-sm ${
                             activeTab === tab.key
                                 ? "text-accent bg-accent/5"
                                 : "text-foreground/60 hover:text-foreground hover:bg-zinc-50"
@@ -62,7 +62,7 @@ export default function ToolsPanel({
             </div>
 
             {/* Tab content */}
-            <div className="p-4 md:p-5 overflow-y-auto h-[320px] md:h-[400px]">
+            <div className="p-5 md:p-6 overflow-y-auto flex-1 min-h-0">
                 <AnimatePresence mode="wait" initial={false}>
                     {activeTab === "layout" && (
                         <motion.div key="layout" initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 16 }} transition={{ duration: 0.2 }} className="flex flex-col gap-3">

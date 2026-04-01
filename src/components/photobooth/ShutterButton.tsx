@@ -15,7 +15,7 @@ export default function ShutterButton({ onCapture, onCancel, isCapturing }: Shut
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, delay: 0.45 }}
-            className="flex flex-col items-center justify-center gap-3 py-2"
+            className="flex flex-col items-center justify-center gap-2 py-2 min-h-[9.5rem]"
         >
             <motion.button
                 onClick={onCapture}
@@ -43,21 +43,23 @@ export default function ShutterButton({ onCapture, onCancel, isCapturing }: Shut
                 </motion.div>
             </motion.button>
 
-            <AnimatePresence>
-                {isCapturing && (
-                    <motion.button
-                        key="cancel"
-                        initial={{ opacity: 0, scale: 0.7, y: -8 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.7, y: -8 }}
-                        transition={{ type: "spring", stiffness: 360, damping: 24 }}
-                        onClick={onCancel}
-                        className="flex items-center gap-2 px-4 py-2 rounded-full bg-zinc-100 dark:bg-zinc-800 text-foreground/70 hover:text-foreground hover:bg-zinc-200 dark:hover:bg-zinc-700 text-sm font-medium transition-colors shadow-sm"
-                    >
-                        <X size={14} /> Cancel
-                    </motion.button>
-                )}
-            </AnimatePresence>
+            <div className="relative h-10 w-full flex items-center justify-center">
+                <AnimatePresence>
+                    {isCapturing && (
+                        <motion.button
+                            key="cancel"
+                            initial={{ opacity: 0, scale: 0.7, y: -8 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.7, y: -8 }}
+                            transition={{ type: "spring", stiffness: 360, damping: 24 }}
+                            onClick={onCancel}
+                            className="absolute flex items-center gap-2 px-4 py-2 rounded-full bg-zinc-100 text-foreground/70 hover:text-foreground hover:bg-zinc-200 text-sm font-medium transition-colors shadow-sm"
+                        >
+                            <X size={14} /> Cancel
+                        </motion.button>
+                    )}
+                </AnimatePresence>
+            </div>
         </motion.div>
     );
 }

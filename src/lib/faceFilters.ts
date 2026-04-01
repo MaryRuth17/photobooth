@@ -125,7 +125,7 @@ export const FACE_FILTERS: FaceFilter[] = [
         image: "/filters/hearts-forehead.png",
         scale: 1.08,
         offsetX: 0,
-        offsetY: -50,
+        offsetY: -45,
         placement: "forehead",
     },
     {

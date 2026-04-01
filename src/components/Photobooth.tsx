@@ -68,6 +68,16 @@ export default function Photobooth() {
         setInStudio(false);
         resetCapture();
         setStickers([]);
+
+        // Wait for the photobooth layout to render, then anchor it from the bottom.
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                document.getElementById("booth")?.scrollIntoView({
+                    behavior: "smooth",
+                    block: "end",
+                });
+            });
+        });
     };
 
     const handleExportStudio = () => {
@@ -112,27 +122,29 @@ export default function Photobooth() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6, delay: 0.1, ease: "easeOut" }}
-                    className="w-full max-w-[1240px] grid grid-cols-1 xl:grid-cols-[16rem_minmax(0,44rem)_13rem] gap-4 lg:gap-6 items-start justify-items-center"
+                    className="w-full max-w-[1400px] grid grid-cols-1 xl:grid-cols-[23rem_minmax(0,44rem)_16rem] gap-4 lg:gap-6 items-stretch justify-items-center"
                 >
                     <motion.div
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.55, delay: 0.2, ease: "easeOut" }}
-                        className="flex flex-col gap-3 w-full xl:w-64 shrink-0 order-2 xl:order-1"
+                        className="flex flex-col gap-4 w-full max-w-[23rem] xl:w-[23rem] xl:min-w-[23rem] xl:max-w-[23rem] shrink-0 order-2 xl:order-1"
                     >
-                        <ToolsPanel
-                            activeTab={activeTab}
-                            setActiveTab={setActiveTab}
-                            selectedLayout={selectedLayout}
-                            onLayoutChange={handleLayoutChange}
-                            selectedFilter={selectedFilter}
-                            onFilterChange={setSelectedFilter}
-                            selectedFrame={selectedFrame}
-                            onFrameChange={setSelectedFrame}
-                            frames={currentFrames}
-                            selectedFaceFilter={selectedFaceFilter}
-                            onFaceFilterChange={setSelectedFaceFilter}
-                        />
+                        <div className="w-full flex-1 min-h-0 h-[420px] md:h-[460px] xl:h-[460px]">
+                            <ToolsPanel
+                                activeTab={activeTab}
+                                setActiveTab={setActiveTab}
+                                selectedLayout={selectedLayout}
+                                onLayoutChange={handleLayoutChange}
+                                selectedFilter={selectedFilter}
+                                onFilterChange={setSelectedFilter}
+                                selectedFrame={selectedFrame}
+                                onFrameChange={setSelectedFrame}
+                                frames={currentFrames}
+                                selectedFaceFilter={selectedFaceFilter}
+                                onFaceFilterChange={setSelectedFaceFilter}
+                            />
+                        </div>
 
                         <ShutterButton
                             onCapture={captureSequence}
@@ -141,7 +153,7 @@ export default function Photobooth() {
                         />
                     </motion.div>
 
-                    <div className="flex min-w-0 w-full max-w-[44rem] items-start justify-center order-1 xl:order-2">
+                    <div className="flex min-w-0 w-full max-w-[44rem] items-center justify-center order-1 xl:order-2 xl:h-[460px]">
                         {useFaceFilter ? (
                             <FaceFilterCamera
                                 ref={faceFilterCameraRef}
@@ -170,7 +182,7 @@ export default function Photobooth() {
                         )}
                     </div>
 
-                    <div className="hidden xl:flex w-full justify-center order-3">
+                    <div className="hidden xl:flex w-full justify-center items-center self-stretch order-3">
                         <LivePreview
                             layoutId={selectedLayout.id}
                             selectedFrame={selectedFrame}
@@ -178,6 +190,7 @@ export default function Photobooth() {
                             capturedSequence={capturedSequence}
                             currentShotIndex={currentShotIndex}
                             isCapturing={isCapturing}
+                            isSourceMirrored={useFaceFilter}
                         />
                     </div>
                 </motion.div>

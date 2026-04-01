@@ -46,15 +46,16 @@ interface LivePreviewProps {
     capturedSequence: string[];
     currentShotIndex: number;
     isCapturing: boolean;
+    isSourceMirrored?: boolean;
 }
 
 export default function LivePreview({
     layoutId, selectedFrame, filterValue,
-    capturedSequence, currentShotIndex, isCapturing,
+    capturedSequence, currentShotIndex, isCapturing, isSourceMirrored = false,
 }: LivePreviewProps) {
     // Responsive preview dimensions - scale based on layout
-    const baseStripW = 150;
-    const baseStandardW = 200;
+    const baseStripW = 176;
+    const baseStandardW = 244;
 
     const previewW = layoutId === "strip" ? baseStripW : baseStandardW;
     const previewH = layoutId === "strip"
@@ -99,7 +100,7 @@ export default function LivePreview({
                         <div key={i} className="absolute overflow-hidden rounded-sm z-[20]" style={{ top: stripPhotoY(i) * scale, left: STRIP_PAD * scale, width: STRIP_PHOTO_W * scale, height: STRIP_PHOTO_H * scale }}>
                             {photoSrc ? (
                                 <motion.img key={photoSrc} initial={{ opacity: 0, scale: 0.85 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.35 }}
-                                    src={photoSrc} className={`w-full h-full object-cover ${photoSrc ? "scale-x-[-1]" : ""}`}
+                                    src={photoSrc} className={`w-full h-full object-cover ${!isSourceMirrored ? "scale-x-[-1]" : ""}`}
                                     style={{ filter: filterValue !== "none" ? filterValue : "none" }} alt={`Shot ${i + 1}`} />
                             ) : (
                                 <div className={`w-full h-full flex items-center justify-center text-xs font-sans ${i === currentShotIndex && isCapturing ? "bg-accent/10 text-accent animate-pulse" : "bg-zinc-100 text-zinc-400"}`}>{i + 1}</div>
@@ -115,7 +116,7 @@ export default function LivePreview({
                         <div key={i} className="absolute overflow-hidden rounded-sm z-[5]" style={{ top: slot.top, left: slot.left, width: slot.w, height: slot.h }}>
                             {photoSrc ? (
                                 <motion.img key={photoSrc} initial={{ opacity: 0, scale: 0.85 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.35 }}
-                                    src={photoSrc} className={`w-full h-full object-cover ${photoSrc ? "scale-x-[-1]" : ""}`}
+                                    src={photoSrc} className={`w-full h-full object-cover ${!isSourceMirrored ? "scale-x-[-1]" : ""}`}
                                     style={{ filter: filterValue !== "none" ? filterValue : "none" }} alt={`Shot ${i + 1}`} />
                             ) : (
                                 <div className={`w-full h-full flex items-center justify-center text-xs font-sans ${i === currentShotIndex && isCapturing ? "bg-accent/10 text-accent animate-pulse" : "bg-zinc-100 text-zinc-400"}`}>{i + 1}</div>
@@ -132,7 +133,7 @@ export default function LivePreview({
                         <div className="absolute overflow-hidden rounded-sm z-[5]" style={{ top: slot.top, left: slot.left, width: slot.w, height: slot.h }}>
                             {photoSrc ? (
                                 <motion.img key={photoSrc} initial={{ opacity: 0, scale: 0.85 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.35 }}
-                                    src={photoSrc} className={`w-full h-full object-cover ${photoSrc ? "scale-x-[-1]" : ""}`}
+                                    src={photoSrc} className={`w-full h-full object-cover ${!isSourceMirrored ? "scale-x-[-1]" : ""}`}
                                     style={{ filter: filterValue !== "none" ? filterValue : "none" }} alt="Shot 1" />
                             ) : (
                                 <div className={`w-full h-full flex items-center justify-center text-xs font-sans ${isCapturing ? "bg-accent/10 text-accent animate-pulse" : "bg-zinc-100 text-zinc-400"}`}>1</div>
