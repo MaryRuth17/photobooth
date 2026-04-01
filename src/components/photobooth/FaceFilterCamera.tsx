@@ -133,9 +133,8 @@ const FaceFilterCamera = forwardRef<FaceFilterCameraHandle, FaceFilterCameraProp
                     // Get the appropriate region based on filter placement
                     const region = getRegionForPlacement(face, filterPlacement);
 
-                    // Calculate scaled position - mirror X coordinate for mirrored video
-                    // Use region center instead of face center so filter follows the specific feature
-                    const mirroredCenterX = canvas.width - (region.centerX * scaleX);
+                    // Calculate mirrored position so overlay matches mirrored preview
+                    const centerX = canvas.width - (region.centerX * scaleX);
                     const centerY = region.centerY * scaleY;
 
                     // Calculate size based on STABLE face dimensions (rotation-invariant)
@@ -162,9 +161,9 @@ const FaceFilterCamera = forwardRef<FaceFilterCameraHandle, FaceFilterCameraProp
 
                     // Draw with rotation - offset applied AFTER rotation so it follows face tilt
                     ctx.save();
-                    // 1. Translate to face center
-                    ctx.translate(mirroredCenterX, centerY);
-                    // 2. Apply rotation (negative for mirror)
+                    // 1. Translate to mirrored face center
+                    ctx.translate(centerX, centerY);
+                    // 2. Apply rotation inverted to account for mirror
                     ctx.rotate(-face.rotation);
                     // 3. Apply offset in rotated coordinate space (so offset follows face tilt)
                     ctx.translate(-filterOffsetX, filterOffsetY);
@@ -174,7 +173,7 @@ const FaceFilterCamera = forwardRef<FaceFilterCameraHandle, FaceFilterCameraProp
 
                     // Debug overlay
                     if (showDebugOverlay) {
-                        const debugX = mirroredCenterX - filterOffsetX - drawWidth / 2;
+                        const debugX = centerX - filterOffsetX - drawWidth / 2;
                         const debugY = centerY + filterOffsetY - drawHeight / 2;
                         ctx.strokeStyle = "#FF6B8B";
                         ctx.lineWidth = 2;
@@ -212,7 +211,7 @@ const FaceFilterCamera = forwardRef<FaceFilterCameraHandle, FaceFilterCameraProp
         const ctx = outputCanvas.getContext("2d");
         if (!ctx) return null;
 
-        // Draw mirrored video
+        // Draw mirrored video so capture matches mirrored lens
         ctx.save();
         ctx.scale(-1, 1);
         ctx.drawImage(video, -video.videoWidth, 0, video.videoWidth, video.videoHeight);
@@ -233,9 +232,8 @@ const FaceFilterCamera = forwardRef<FaceFilterCameraHandle, FaceFilterCameraProp
                 // Get the appropriate region based on filter placement
                 const region = getRegionForPlacement(face, filterPlacement);
 
-                // Use original video coordinates (already mirrored in face detection)
-                // Use region center so filter follows the specific feature
-                const mirroredCenterX = video.videoWidth - region.centerX;
+                // Mirror coordinates so overlay matches mirrored output
+                const centerX = video.videoWidth - region.centerX;
                 const centerY = region.centerY;
 
                 // Use stable dimensions for rotation-invariant sizing
@@ -258,9 +256,9 @@ const FaceFilterCamera = forwardRef<FaceFilterCameraHandle, FaceFilterCameraProp
 
                 // Draw with rotation - offset applied AFTER rotation so it follows face tilt
                 ctx.save();
-                // 1. Translate to face center
-                ctx.translate(mirroredCenterX, centerY);
-                // 2. Apply rotation (negative for mirror)
+                // 1. Translate to mirrored face center
+                ctx.translate(centerX, centerY);
+                // 2. Apply rotation inverted for mirror
                 ctx.rotate(-face.rotation);
                 // 3. Apply offset in rotated coordinate space
                 ctx.translate(-filterOffsetX, filterOffsetY);

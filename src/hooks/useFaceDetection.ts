@@ -242,6 +242,7 @@ export function useFaceDetection(options: UseFaceDetectionOptions = {}): UseFace
     const animationFrameRef = useRef<number | null>(null);
     const isRunningRef = useRef(false);
     const lastVideoTimeRef = useRef(-1);
+    const previousFacesRef = useRef<FaceData[] | null>(null);
 
     // Initialize FaceLandmarker
     useEffect(() => {
@@ -329,9 +330,49 @@ export function useFaceDetection(options: UseFaceDetectionOptions = {}): UseFace
                             }));
                             return calculateFaceData(formattedLandmarks, videoWidth, videoHeight);
                         });
-                        setFaces(faceDataArray);
+                        // Smooth tracking to avoid jumps when turning sideways
+                        const smoothing = 0.35;
+                        const mix = (a: number, b: number) => a + (b - a) * smoothing;
+
+                        const smoothedFaces = faceDataArray.map((face, idx) => {
+                            const prev = previousFacesRef.current?.[idx];
+                            if (!prev) return face;
+
+                            const smoothRegion = (curr: typeof face.regions.eyes, prevRegion: typeof face.regions.eyes) => ({
+                                x: mix(prevRegion.x, curr.x),
+                                y: mix(prevRegion.y, curr.y),
+                                width: mix(prevRegion.width, curr.width),
+                                height: mix(prevRegion.height, curr.height),
+                                centerX: mix(prevRegion.centerX, curr.centerX),
+                                centerY: mix(prevRegion.centerY, curr.centerY),
+                            });
+
+                            return {
+                                ...face,
+                                x: mix(prev.x, face.x),
+                                y: mix(prev.y, face.y),
+                                width: mix(prev.width, face.width),
+                                height: mix(prev.height, face.height),
+                                centerX: mix(prev.centerX, face.centerX),
+                                centerY: mix(prev.centerY, face.centerY),
+                                rotation: mix(prev.rotation, face.rotation),
+                                scale: mix(prev.scale, face.scale),
+                                stableWidth: mix(prev.stableWidth, face.stableWidth),
+                                stableHeight: mix(prev.stableHeight, face.stableHeight),
+                                regions: {
+                                    eyes: smoothRegion(face.regions.eyes, prev.regions.eyes),
+                                    forehead: smoothRegion(face.regions.forehead, prev.regions.forehead),
+                                    nose: smoothRegion(face.regions.nose, prev.regions.nose),
+                                    mouth: smoothRegion(face.regions.mouth, prev.regions.mouth),
+                                },
+                            };
+                        });
+
+                        previousFacesRef.current = smoothedFaces;
+                        setFaces(smoothedFaces);
                     } else {
                         setFaces([]);
+                        previousFacesRef.current = null;
                     }
                 } catch (e) {
                     // Ignore detection errors during rapid state changes
@@ -350,6 +391,7 @@ export function useFaceDetection(options: UseFaceDetectionOptions = {}): UseFace
             cancelAnimationFrame(animationFrameRef.current);
             animationFrameRef.current = null;
         }
+        previousFacesRef.current = null;
         setFaces([]);
     }, []);
 

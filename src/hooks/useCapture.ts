@@ -169,10 +169,12 @@ export function useCapture({ selectedLayout, selectedFilter, selectedFrame, sele
                     dx = 20; dy = 20; dw = 760; dh = 560;
                 }
                 ctx.save();
-                // If using face filter, image is already mirrored, don't flip again
                 if (useFaceFilter) {
-                    drawImageCover(img, dx, dy, dw, dh);
+                    // Face filter captures are already mirrored; draw as-is
+                    ctx.translate(dx, dy);
+                    drawImageCover(img, 0, 0, dw, dh);
                 } else {
+                    // Mirror regular captures to match the mirrored lens
                     ctx.translate(dx + dw, dy);
                     ctx.scale(-1, 1);
                     drawImageCover(img, 0, 0, dw, dh);
