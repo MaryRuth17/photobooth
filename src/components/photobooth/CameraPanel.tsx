@@ -26,7 +26,7 @@ export default function CameraPanel({
         >
             {/* Gradient border — glows while capturing */}
             <motion.div
-                className="p-[3px] rounded-[22px] w-full md:max-w-[640px] lg:max-w-[680px] xl:h-full xl:w-auto xl:aspect-[4/3]"
+                className="p-[3px] rounded-[22px] w-full md:max-w-[640px] lg:max-w-[680px] xl:h-full xl:w-full xl:max-w-none"
                 animate={{
                     boxShadow: isCapturing
                         ? "0 0 70px rgba(255,107,139,0.65), 0 20px 80px rgba(255,107,139,0.3)"
@@ -35,7 +35,7 @@ export default function CameraPanel({
                 transition={{ duration: 0.6 }}
                 style={{ background: "linear-gradient(135deg, #FF6B8B 0%, #FFB3C6 40%, #FFD4A0 70%, #FF6B8B 100%)" }}
             >
-                <div className="relative aspect-[4/3] rounded-[20px] overflow-hidden bg-zinc-900">
+                <div className="relative h-full rounded-[20px] overflow-hidden bg-zinc-900">
                     <Webcam
                         audio={false}
                         ref={webcamRef}

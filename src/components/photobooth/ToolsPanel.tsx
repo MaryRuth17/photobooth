@@ -138,9 +138,6 @@ export default function ToolsPanel({
 
                     {activeTab === "faceFilter" && (
                         <motion.div key="faceFilter" initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 16 }} transition={{ duration: 0.2 }} className="flex flex-col gap-4">
-                            <p className="text-xs text-foreground/60 text-center">
-                                AR face filters track your face in real-time
-                            </p>
                             <div className="grid grid-cols-3 gap-2">
                                 {FACE_FILTERS.map((filter, i) => {
                                     const isSelected = filter.id === selectedFaceFilter.id;

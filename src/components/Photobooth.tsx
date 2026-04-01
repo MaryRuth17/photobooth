@@ -128,7 +128,7 @@ export default function Photobooth() {
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.55, delay: 0.2, ease: "easeOut" }}
-                        className="flex flex-col gap-4 w-full max-w-[23rem] xl:w-[23rem] xl:min-w-[23rem] xl:max-w-[23rem] shrink-0 order-2 xl:order-1"
+                        className="flex flex-col gap-4 w-full max-w-[23rem] xl:w-[23rem] xl:min-w-[23rem] xl:max-w-[23rem] shrink-0 order-2 xl:order-1 xl:h-[628px]"
                     >
                         <div className="w-full flex-1 min-h-0 h-[420px] md:h-[460px] xl:h-[460px]">
                             <ToolsPanel
@@ -153,7 +153,7 @@ export default function Photobooth() {
                         />
                     </motion.div>
 
-                    <div className="flex min-w-0 w-full max-w-[44rem] items-center justify-center order-1 xl:order-2 xl:h-[460px]">
+                    <div className="flex min-w-0 w-full max-w-[44rem] items-center justify-center order-1 xl:order-2 xl:h-[628px]">
                         {useFaceFilter ? (
                             <FaceFilterCamera
                                 ref={faceFilterCameraRef}
