@@ -58,6 +58,25 @@ interface UseFaceDetectionReturn {
     stopDetection: () => void;
 }
 
+const TRACKING_TUNING = {
+    // Adaptive cadence: run every frame during fast motion, relax when mostly still.
+    stableFrameInterval: 2,
+    fastFrameInterval: 1,
+    motionFastThreshold: 0.028,
+    motionDeadzoneRatio: 0.012,
+    // Balanced smoothing: stable while still, faster catch-up during quick motion.
+    basePosAlpha: 0.56,
+    baseScaleAlpha: 0.58,
+    baseRotAlpha: 0.52,
+    fastPosAlpha: 0.9,
+    fastScaleAlpha: 0.88,
+    fastRotAlpha: 0.86,
+    // Relative movement amount where fast response fully kicks in.
+    motionBoostScale: 5,
+    // Keep overlays stable across brief missed detections.
+    maxMissedDetections: 4,
+} as const;
+
 
 const LANDMARK_INDICES = {
     // Face boundaries (used for full-face bounding box)
@@ -298,6 +317,9 @@ export function useFaceDetection(options: UseFaceDetectionOptions = {}): UseFace
     const isRunningRef = useRef(false);
     const lastVideoTimeRef = useRef(-1);
     const previousFacesRef = useRef<FaceData[] | null>(null);
+    const processedFrameCountRef = useRef(0);
+    const missedDetectionsRef = useRef(0);
+    const recentMotionRatioRef = useRef(0);
 
     // Initialize FaceLandmarker
     useEffect(() => {
@@ -355,6 +377,9 @@ export function useFaceDetection(options: UseFaceDetectionOptions = {}): UseFace
         videoRef.current = videoElement;
         isRunningRef.current = true;
         lastVideoTimeRef.current = -1;
+        processedFrameCountRef.current = 0;
+        missedDetectionsRef.current = 0;
+        recentMotionRatioRef.current = 1;
 
         // Frame processing loop
         const processFrame = () => {
@@ -370,9 +395,24 @@ export function useFaceDetection(options: UseFaceDetectionOptions = {}): UseFace
                 const startTimeMs = performance.now();
 
                 try {
+                    processedFrameCountRef.current += 1;
+                    const detectionInterval =
+                        recentMotionRatioRef.current > TRACKING_TUNING.motionFastThreshold
+                            ? TRACKING_TUNING.fastFrameInterval
+                            : TRACKING_TUNING.stableFrameInterval;
+                    const shouldRunDetection =
+                        processedFrameCountRef.current % detectionInterval === 0 ||
+                        !previousFacesRef.current;
+
+                    if (!shouldRunDetection) {
+                        animationFrameRef.current = requestAnimationFrame(processFrame);
+                        return;
+                    }
+
                     const results: FaceLandmarkerResult = faceLandmarkerRef.current.detectForVideo(video, startTimeMs);
 
                     if (results.faceLandmarks && results.faceLandmarks.length > 0) {
+                        missedDetectionsRef.current = 0;
                         const videoWidth = video.videoWidth;
                         const videoHeight = video.videoHeight;
 
@@ -385,17 +425,44 @@ export function useFaceDetection(options: UseFaceDetectionOptions = {}): UseFace
                             }));
                             return calculateFaceData(formattedLandmarks, videoWidth, videoHeight);
                         });
-                        // Smooth tracking to avoid jumps while staying responsive when scaling/rotating
-                        const smoothingPos = 0.45;
-                        const smoothingScale = 0.6;
-                        const smoothingRot = 0.5;
-                        const mixPos = (a: number, b: number) => a + (b - a) * smoothingPos;
-                        const mixScale = (a: number, b: number) => a + (b - a) * smoothingScale;
-                        const mixRot = (a: number, b: number) => a + (b - a) * smoothingRot;
+                        // Use adaptive smoothing so quick movement catches up faster without adding idle jitter.
+                        const getAdaptiveAlpha = (baseAlpha: number, fastAlpha: number, motionRatio: number) => {
+                            const motionBoost = Math.min(1, motionRatio * TRACKING_TUNING.motionBoostScale);
+                            return baseAlpha + (fastAlpha - baseAlpha) * motionBoost;
+                        };
+
+                        let maxMotionRatio = 0;
 
                         const smoothedFaces = faceDataArray.map((face, idx) => {
                             const prev = previousFacesRef.current?.[idx];
                             if (!prev) return face;
+
+                            const movementPx = Math.hypot(face.centerX - prev.centerX, face.centerY - prev.centerY);
+                            const faceSize = Math.max(prev.stableWidth, prev.stableHeight, 1);
+                            const rawMotionRatio = movementPx / faceSize;
+                            const motionRatio = Math.max(0, rawMotionRatio - TRACKING_TUNING.motionDeadzoneRatio);
+
+                            maxMotionRatio = Math.max(maxMotionRatio, motionRatio);
+
+                            const posAlpha = getAdaptiveAlpha(
+                                TRACKING_TUNING.basePosAlpha,
+                                TRACKING_TUNING.fastPosAlpha,
+                                motionRatio
+                            );
+                            const scaleAlpha = getAdaptiveAlpha(
+                                TRACKING_TUNING.baseScaleAlpha,
+                                TRACKING_TUNING.fastScaleAlpha,
+                                motionRatio
+                            );
+                            const rotAlpha = getAdaptiveAlpha(
+                                TRACKING_TUNING.baseRotAlpha,
+                                TRACKING_TUNING.fastRotAlpha,
+                                motionRatio
+                            );
+
+                            const mixPos = (a: number, b: number) => a + (b - a) * posAlpha;
+                            const mixScale = (a: number, b: number) => a + (b - a) * scaleAlpha;
+                            const mixRot = (a: number, b: number) => a + (b - a) * rotAlpha;
 
                             const smoothRegion = (curr: typeof face.regions.eyes, prevRegion: typeof face.regions.eyes) => ({
                                 x: mixPos(prevRegion.x, curr.x),
@@ -431,13 +498,19 @@ export function useFaceDetection(options: UseFaceDetectionOptions = {}): UseFace
                             };
                         });
 
+                        recentMotionRatioRef.current = maxMotionRatio;
                         previousFacesRef.current = smoothedFaces;
                         setFaces(smoothedFaces);
                     } else {
-                        setFaces([]);
-                        previousFacesRef.current = null;
+                        recentMotionRatioRef.current *= 0.6;
+                        missedDetectionsRef.current += 1;
+                        if (missedDetectionsRef.current >= TRACKING_TUNING.maxMissedDetections) {
+                            setFaces([]);
+                            previousFacesRef.current = null;
+                            missedDetectionsRef.current = 0;
+                        }
                     }
-                } catch (e) {
+                } catch {
                     // Ignore detection errors during rapid state changes
                 }
             }
@@ -454,6 +527,9 @@ export function useFaceDetection(options: UseFaceDetectionOptions = {}): UseFace
             cancelAnimationFrame(animationFrameRef.current);
             animationFrameRef.current = null;
         }
+        processedFrameCountRef.current = 0;
+        missedDetectionsRef.current = 0;
+        recentMotionRatioRef.current = 0;
         previousFacesRef.current = null;
         setFaces([]);
     }, []);
