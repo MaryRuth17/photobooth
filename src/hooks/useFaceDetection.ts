@@ -64,6 +64,8 @@ const TRACKING_TUNING = {
     fastFrameInterval: 1,
     motionFastThreshold: 0.028,
     motionDeadzoneRatio: 0.012,
+    zoomMotionWeight: 1.7,
+    depthMotionWeight: 1.15,
     // Balanced smoothing: stable while still, faster catch-up during quick motion.
     basePosAlpha: 0.56,
     baseScaleAlpha: 0.58,
@@ -118,6 +120,8 @@ const LANDMARK_INDICES = {
     UPPER_LIP_TOP: 13,     // Peak of upper lip (Cupid's bow)
     LOWER_LIP_BOTTOM: 14,  // Lowest point of lower lip
 };
+
+const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
 function calculateFaceData(landmarks: { x: number; y: number; z: number }[], videoWidth: number, videoHeight: number): FaceData {
     // Get key points (extracting specific landmarks by index)
@@ -181,9 +185,13 @@ function calculateFaceData(landmarks: { x: number; y: number; z: number }[], vid
     const cosYaw = Math.max(0.35, Math.abs(Math.cos(yaw)));
     const cosPitch = Math.max(0.35, Math.abs(Math.cos(pitch)));
 
-    // Nudge center toward the nose so overlays stick when yawing/tilting (reduced to avoid over-shoot)
-    const yawShift = (noseTip.x - centerX) * 0.16;
-    const pitchShift = (noseTip.y - centerY) * 0.07;
+    // Keep anchor shifts responsive but bounded so very near/far faces do not overshoot.
+    const rawYawShift = (noseTip.x - centerX) * 0.16;
+    const rawPitchShift = (noseTip.y - centerY) * 0.07;
+    const maxYawShift = faceWidth * 0.085;
+    const maxPitchShift = faceHeight * 0.06;
+    const yawShift = clamp(rawYawShift, -maxYawShift, maxYawShift);
+    const pitchShift = clamp(rawPitchShift, -maxPitchShift, maxPitchShift);
     const centerXAdjusted = centerX + yawShift;
     const centerYAdjusted = centerY + pitchShift;
 
@@ -229,7 +237,8 @@ function calculateFaceData(landmarks: { x: number; y: number; z: number }[], vid
     const mouthWidth = distance2D(mouthLeft, mouthRight);
     const mouthHeight = distance2D(mouthTop, mouthBottom);
 
-    const depthScale = Math.min(1.8, Math.max(0.65, 1 + (-avgZ || 0) * 0.6));
+    // Keep depth influence conservative to prevent size wobble when users move very near/far.
+    const depthScale = clamp(1 + (-avgZ || 0) * 0.34, 0.78, 1.32);
 
     const widthStretch = 1 / cosYaw;
     const heightStretch = 1 / cosPitch;
@@ -439,25 +448,49 @@ export function useFaceDetection(options: UseFaceDetectionOptions = {}): UseFace
 
                             const movementPx = Math.hypot(face.centerX - prev.centerX, face.centerY - prev.centerY);
                             const faceSize = Math.max(prev.stableWidth, prev.stableHeight, 1);
-                            const rawMotionRatio = movementPx / faceSize;
-                            const motionRatio = Math.max(0, rawMotionRatio - TRACKING_TUNING.motionDeadzoneRatio);
+                            const positionMotionRatio = movementPx / faceSize;
+                            const scaleMotionRatioRaw = Math.abs(face.stableWidth - prev.stableWidth) / faceSize;
+                            const depthMotionRatioRaw = Math.abs(face.depthScale - prev.depthScale);
 
-                            maxMotionRatio = Math.max(maxMotionRatio, motionRatio);
+                            const zoomMotionRatio = scaleMotionRatioRaw * TRACKING_TUNING.zoomMotionWeight;
+                            const depthMotionRatio = depthMotionRatioRaw * TRACKING_TUNING.depthMotionWeight;
+
+                            const combinedMotionRatioRaw = Math.max(
+                                positionMotionRatio,
+                                zoomMotionRatio,
+                                depthMotionRatio,
+                            );
+                            const combinedMotionRatio = Math.max(
+                                0,
+                                combinedMotionRatioRaw - TRACKING_TUNING.motionDeadzoneRatio,
+                            );
+
+                            maxMotionRatio = Math.max(maxMotionRatio, combinedMotionRatio);
+
+                            const positionAdaptiveRatio = Math.max(
+                                positionMotionRatio,
+                                zoomMotionRatio * 0.45,
+                            );
+                            const scaleAdaptiveRatio = Math.max(
+                                positionMotionRatio * 0.35,
+                                zoomMotionRatio,
+                                depthMotionRatio,
+                            );
 
                             const posAlpha = getAdaptiveAlpha(
                                 TRACKING_TUNING.basePosAlpha,
                                 TRACKING_TUNING.fastPosAlpha,
-                                motionRatio
+                                positionAdaptiveRatio
                             );
                             const scaleAlpha = getAdaptiveAlpha(
                                 TRACKING_TUNING.baseScaleAlpha,
                                 TRACKING_TUNING.fastScaleAlpha,
-                                motionRatio
+                                scaleAdaptiveRatio
                             );
                             const rotAlpha = getAdaptiveAlpha(
                                 TRACKING_TUNING.baseRotAlpha,
                                 TRACKING_TUNING.fastRotAlpha,
-                                motionRatio
+                                combinedMotionRatio
                             );
 
                             const mixPos = (a: number, b: number) => a + (b - a) * posAlpha;
@@ -544,6 +577,51 @@ export function useFaceDetection(options: UseFaceDetectionOptions = {}): UseFace
     };
 }
 
+function getFullFaceRegion(face: FaceData) {
+    // Keep full-face overlays anchored to stable facial features (eyes/nose/mouth)
+    // instead of relying only on the coarse outer-face box.
+    const yawInfluence = clamp(Math.abs(Math.sin(face.yaw ?? 0)), 0, 0.95);
+    const pitchInfluence = clamp(Math.abs(Math.sin(face.pitch ?? 0)), 0, 0.95);
+
+    const anchorX =
+        face.regions.eyes.centerX * 0.26 +
+        face.regions.nose.centerX * 0.46 +
+        face.regions.mouth.centerX * 0.28;
+
+    const anchorY =
+        face.regions.forehead.centerY * 0.20 +
+        face.regions.eyes.centerY * 0.18 +
+        face.regions.nose.centerY * 0.32 +
+        face.regions.mouth.centerY * 0.30;
+
+    const featureWidth = Math.max(
+        face.regions.forehead.width * 1.28,
+        face.regions.eyes.width * 1.62,
+        face.regions.mouth.width * 1.95,
+    );
+
+    const featureHeight = Math.max(
+        Math.abs(face.regions.mouth.centerY - face.regions.forehead.centerY) * 1.92,
+        face.regions.nose.height * 3.6,
+    );
+
+    // As the head turns, tighten overlay dimensions a bit to reduce feature drift.
+    const yawTighten = 1 - yawInfluence * 0.24;
+    const pitchTighten = 1 - pitchInfluence * 0.12;
+
+    const width = Math.max(featureWidth, face.stableWidth * 0.98 * yawTighten);
+    const height = Math.max(featureHeight, face.stableHeight * 1.02 * pitchTighten);
+
+    return {
+        x: anchorX - width / 2,
+        y: anchorY - height / 2,
+        width,
+        height,
+        centerX: anchorX,
+        centerY: anchorY,
+    };
+}
+
 // Helper function to get the appropriate region for a placement
 export function getRegionForPlacement(face: FaceData, placement: FilterPlacement) {
     switch (placement) {
@@ -557,13 +635,6 @@ export function getRegionForPlacement(face: FaceData, placement: FilterPlacement
             return face.regions.mouth;
         case "full-face":
         default:
-            return {
-                x: face.x,
-                y: face.y,
-                width: face.width,
-                height: face.height,
-                centerX: face.centerX,
-                centerY: face.centerY,
-            };
+            return getFullFaceRegion(face);
     }
 }

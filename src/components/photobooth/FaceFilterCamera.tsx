@@ -48,11 +48,15 @@ const FaceFilterCamera = forwardRef<FaceFilterCameraHandle, FaceFilterCameraProp
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const videoElementRef = useRef<HTMLVideoElement | null>(null);
     const filterImageRef = useRef<HTMLImageElement | null>(null);
+    const filterLoadRequestRef = useRef(0);
     const [loadedFilterSrc, setLoadedFilterSrc] = useState<string | null>(null);
     const [loadedFilterImage, setLoadedFilterImage] = useState<HTMLImageElement | null>(null);
+    const [failedFilterSrc, setFailedFilterSrc] = useState<string | null>(null);
     const [containerSize, setContainerSize] = useState({ width: 640, height: 480 });
     const containerRef = useRef<HTMLDivElement>(null);
     const filterLoaded = Boolean(filterImage) && loadedFilterSrc === filterImage;
+    const filterLoadError = Boolean(filterImage) && failedFilterSrc === filterImage;
+    const isFilterImageLoading = Boolean(filterImage) && !filterLoaded && !filterLoadError;
 
     const { faces, isLoading, isReady, error, startDetection, stopDetection } = useFaceDetection({
         maxFaces: 4,
@@ -67,20 +71,39 @@ const FaceFilterCamera = forwardRef<FaceFilterCameraHandle, FaceFilterCameraProp
             return;
         }
 
+        const requestId = ++filterLoadRequestRef.current;
+        filterImageRef.current = null;
+
         const img = new Image();
         img.crossOrigin = "anonymous";
         img.onload = () => {
+            if (filterLoadRequestRef.current !== requestId) {
+                return;
+            }
+
             filterImageRef.current = img;
             setLoadedFilterImage(img);
             setLoadedFilterSrc(filterImage);
+            setFailedFilterSrc((prev) => (prev === filterImage ? null : prev));
             onFilterReady?.();
         };
         img.onerror = () => {
+            if (filterLoadRequestRef.current !== requestId) {
+                return;
+            }
+
             console.error("Failed to load filter image:", filterImage);
+            filterImageRef.current = null;
             setLoadedFilterImage(null);
             setLoadedFilterSrc(null);
+            setFailedFilterSrc(filterImage);
         };
         img.src = filterImage;
+
+        return () => {
+            img.onload = null;
+            img.onerror = null;
+        };
     }, [filterImage, onFilterReady]);
 
     // Track container size for responsive canvas
@@ -228,7 +251,7 @@ const FaceFilterCamera = forwardRef<FaceFilterCameraHandle, FaceFilterCameraProp
 
                     {/* Loading indicator */}
                     <AnimatePresence>
-                        {isLoading && filterImage && (
+                        {isFilterImageLoading && (
                             <motion.div
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
@@ -236,6 +259,20 @@ const FaceFilterCamera = forwardRef<FaceFilterCameraHandle, FaceFilterCameraProp
                                 className="absolute top-4 right-4 z-10 bg-black/50 backdrop-blur-sm px-3 py-1.5 rounded-full"
                             >
                                 <span className="text-white text-sm">Loading face filter...</span>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+
+                    {/* Filter load failure indicator */}
+                    <AnimatePresence>
+                        {filterLoadError && filterImage && (
+                            <motion.div
+                                initial={{ opacity: 0, y: -8 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -8 }}
+                                className="absolute top-14 right-4 z-10 bg-red-500/80 backdrop-blur-sm px-3 py-1.5 rounded-full"
+                            >
+                                <span className="text-white text-sm">Failed to load face filter image.</span>
                             </motion.div>
                         )}
                     </AnimatePresence>

@@ -47,6 +47,11 @@ interface FaceFrameRenderOptions {
 }
 
 const FILTER_COVERAGE = 1.2;
+const GLOBAL_FILTER_SCALE = 1.15;
+const FULL_FACE_OFFSET_NEUTRAL_MIN_HEIGHT = 180;
+const FULL_FACE_OFFSET_NEUTRAL_MAX_HEIGHT = 300;
+const FULL_FACE_OFFSET_MIN_SCALE = 0.4;
+const FULL_FACE_OFFSET_MAX_SCALE = 1.2;
 
 function getImageDrawSize(
     image: HTMLImageElement,
@@ -90,6 +95,32 @@ function createStabilizedRegionPose(
     };
 }
 
+function getPlacementOffsetScale(
+    pose: StabilizedRegionPose,
+    placement: FilterPlacement,
+): number {
+    if (placement !== "full-face") {
+        return 1;
+    }
+
+    // Preserve current alignment at normal distances and adapt only at extremes.
+    if (pose.height < FULL_FACE_OFFSET_NEUTRAL_MIN_HEIGHT) {
+        const farScale = pose.height / FULL_FACE_OFFSET_NEUTRAL_MIN_HEIGHT;
+        return Math.max(FULL_FACE_OFFSET_MIN_SCALE, Math.min(1, farScale));
+    }
+
+    if (pose.height > FULL_FACE_OFFSET_NEUTRAL_MAX_HEIGHT) {
+        const nearScale =
+            1 +
+            ((pose.height - FULL_FACE_OFFSET_NEUTRAL_MAX_HEIGHT) /
+                FULL_FACE_OFFSET_NEUTRAL_MAX_HEIGHT) *
+                0.35;
+        return Math.min(FULL_FACE_OFFSET_MAX_SCALE, Math.max(1, nearScale));
+    }
+
+    return 1;
+}
+
 function renderImageOverlay(
     ctx: CanvasRenderingContext2D,
     image: HTMLImageElement,
@@ -98,8 +129,8 @@ function renderImageOverlay(
 ): DrawSize {
     const userScale = options.userScale ?? 1;
     const depthScale = pose.depthScale || 1;
-    const baseWidth = pose.width * userScale * depthScale;
-    const baseHeight = pose.height * userScale * depthScale;
+    const baseWidth = pose.width * userScale * GLOBAL_FILTER_SCALE * depthScale;
+    const baseHeight = pose.height * userScale * GLOBAL_FILTER_SCALE * depthScale;
     const drawSize = getImageDrawSize(image, baseWidth, baseHeight);
 
     ctx.save();
@@ -186,16 +217,19 @@ export function renderFaceFrame(options: FaceFrameRenderOptions) {
             outputWidth: canvasWidth,
             mirrorX,
         });
+        const placementOffsetScale = getPlacementOffsetScale(filterPose, filterPlacement);
+        const scaledOffsetX = overlayOffsetX * placementOffsetScale;
+        const scaledOffsetY = filterOffsetY * placementOffsetScale;
 
         if (filterImage) {
             const drawSize = renderImageOverlay(ctx, filterImage, filterPose, {
                 userScale: filterScale,
-                offsetX: overlayOffsetX,
-                offsetY: filterOffsetY,
+                offsetX: scaledOffsetX,
+                offsetY: scaledOffsetY,
             });
 
             if (showDebugOverlay) {
-                drawDebugBounds(ctx, filterPose, drawSize, overlayOffsetX, filterOffsetY);
+                drawDebugBounds(ctx, filterPose, drawSize, scaledOffsetX, scaledOffsetY);
             }
         }
     }
