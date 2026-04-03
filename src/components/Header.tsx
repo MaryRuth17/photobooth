@@ -1,7 +1,7 @@
 "use client";
 
 import { Camera } from "lucide-react";
-import { motion, useMotionTemplate, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
 
 export default function Header() {
     const { scrollY } = useScroll();
@@ -33,12 +33,6 @@ export default function Header() {
         const top = target.getBoundingClientRect().top + window.scrollY - headerOffset - breathingRoom;
 
         window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
-    };
-
-    const scrollToPageEnd = () => {
-        const doc = document.documentElement;
-        const maxScrollTop = Math.max(doc.scrollHeight, document.body.scrollHeight) - window.innerHeight;
-        window.scrollTo({ top: Math.max(0, maxScrollTop), behavior: "smooth" });
     };
 
     return (

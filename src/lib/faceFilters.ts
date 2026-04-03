@@ -147,8 +147,3 @@ export const PLACEMENT_DEFAULTS: Record<FaceFilter["placement"], { offsetY: numb
     "nose": { offsetY: 15, scale: 0.4 },
     "mouth": { offsetY: 50, scale: 0.6 },
 };
-
-// Helper to get a filter by ID
-export function getFaceFilterById(id: string): FaceFilter | undefined {
-    return FACE_FILTERS.find(f => f.id === id);
-}

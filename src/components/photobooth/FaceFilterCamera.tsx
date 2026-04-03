@@ -3,7 +3,9 @@
 import { useEffect, useRef, useState, useCallback, forwardRef, useImperativeHandle } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Webcam from "react-webcam";
-import { useFaceDetection, FaceData, FilterPlacement, getRegionForPlacement } from "@/hooks/useFaceDetection";
+import { useFaceDetection, FilterPlacement } from "@/hooks/useFaceDetection";
+import FaceFilterRenderer from "./FaceFilterRenderer";
+import { renderFaceFrame } from "@/lib/propRenderer";
 
 interface FaceFilterCameraProps {
     filterValue?: string;
@@ -44,10 +46,10 @@ const FaceFilterCamera = forwardRef<FaceFilterCameraHandle, FaceFilterCameraProp
 }, ref) => {
     const webcamRef = useRef<Webcam>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const videoElementRef = useRef<HTMLVideoElement | null>(null);
     const filterImageRef = useRef<HTMLImageElement | null>(null);
-    const facesRef = useRef<FaceData[]>([]);
-    const animationFrameRef = useRef<number | null>(null);
     const [loadedFilterSrc, setLoadedFilterSrc] = useState<string | null>(null);
+    const [loadedFilterImage, setLoadedFilterImage] = useState<HTMLImageElement | null>(null);
     const [containerSize, setContainerSize] = useState({ width: 640, height: 480 });
     const containerRef = useRef<HTMLDivElement>(null);
     const filterLoaded = Boolean(filterImage) && loadedFilterSrc === filterImage;
@@ -57,10 +59,6 @@ const FaceFilterCamera = forwardRef<FaceFilterCameraHandle, FaceFilterCameraProp
         minDetectionConfidence: 0.6,
         minTrackingConfidence: 0.35,
     });
-
-    useEffect(() => {
-        facesRef.current = faces;
-    }, [faces]);
 
     // Load filter image
     useEffect(() => {
@@ -73,11 +71,13 @@ const FaceFilterCamera = forwardRef<FaceFilterCameraHandle, FaceFilterCameraProp
         img.crossOrigin = "anonymous";
         img.onload = () => {
             filterImageRef.current = img;
+            setLoadedFilterImage(img);
             setLoadedFilterSrc(filterImage);
             onFilterReady?.();
         };
         img.onerror = () => {
             console.error("Failed to load filter image:", filterImage);
+            setLoadedFilterImage(null);
             setLoadedFilterSrc(null);
         };
         img.src = filterImage;
@@ -112,6 +112,7 @@ const FaceFilterCamera = forwardRef<FaceFilterCameraHandle, FaceFilterCameraProp
         const checkWebcam = setInterval(() => {
             const video = webcamRef.current?.video;
             if (video && video.readyState >= 2) {
+                videoElementRef.current = video;
                 startDetection(video);
                 clearInterval(checkWebcam);
             }
@@ -119,113 +120,15 @@ const FaceFilterCamera = forwardRef<FaceFilterCameraHandle, FaceFilterCameraProp
 
         return () => {
             clearInterval(checkWebcam);
+            videoElementRef.current = null;
             stopDetection();
         };
     }, [isReady, startDetection, stopDetection]);
 
-    // Animation loop to draw filter overlay
-    useEffect(() => {
-        const canvas = canvasRef.current;
-        const ctx = canvas?.getContext("2d");
-        if (!canvas || !ctx) return;
-
-        const draw = () => {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            const currentFaces = facesRef.current;
-
-            if (!filterLoaded || !filterImageRef.current || currentFaces.length === 0) {
-                animationFrameRef.current = requestAnimationFrame(draw);
-                return;
-            }
-
-            const video = webcamRef.current?.video;
-            if (!video) {
-                animationFrameRef.current = requestAnimationFrame(draw);
-                return;
-            }
-
-            // Scale factors from video to canvas
-            const scaleX = canvas.width / video.videoWidth;
-            const scaleY = canvas.height / video.videoHeight;
-
-            currentFaces.forEach((face: FaceData) => {
-                const img = filterImageRef.current!;
-                const roll = face.roll ?? face.rotation ?? 0;
-
-                // Get the appropriate region based on filter placement
-                const region = getRegionForPlacement(face, filterPlacement);
-
-                // Calculate mirrored position so overlay matches mirrored preview
-                const centerX = canvas.width - (region.centerX * scaleX);
-                const centerY = region.centerY * scaleY;
-
-                // Calculate size based on STABLE face dimensions (rotation-invariant)
-                // Use stableWidth/stableHeight instead of width/height to prevent size changes during rotation
-                const depthScale = face.depthScale ?? 1;
-                const faceWidth = face.stableWidth * scaleX * filterScale * depthScale;
-                const faceHeight = face.stableHeight * scaleY * filterScale * depthScale;
-
-                // Maintain aspect ratio of the filter image
-                const imgAspect = img.width / img.height;
-                const faceAspect = faceWidth / faceHeight;
-
-                let drawWidth: number;
-                let drawHeight: number;
-
-                if (imgAspect > faceAspect) {
-                    // Image is wider than face, fit to width
-                    drawWidth = faceWidth * 1.2; // Slightly larger for full coverage
-                    drawHeight = drawWidth / imgAspect;
-                } else {
-                    // Image is taller than face, fit to height
-                    drawHeight = faceHeight * 1.2;
-                    drawWidth = drawHeight * imgAspect;
-                }
-
-                // Draw with rotation - offset applied AFTER rotation so it follows face tilt
-                ctx.save();
-                // 1. Translate to mirrored face center
-                ctx.translate(centerX, centerY);
-                // 2. Apply rotation inverted to account for mirror
-                ctx.rotate(-roll);
-                // 3. Apply offset in rotated coordinate space (so offset follows face tilt)
-                ctx.translate(-filterOffsetX, filterOffsetY);
-                // 4. Draw image centered at this point
-                ctx.drawImage(img, -drawWidth / 2, -drawHeight / 2, drawWidth, drawHeight);
-                ctx.restore();
-
-                // Debug overlay
-                if (showDebugOverlay) {
-                    const debugX = centerX - filterOffsetX - drawWidth / 2;
-                    const debugY = centerY + filterOffsetY - drawHeight / 2;
-                    ctx.strokeStyle = "#FF6B8B";
-                    ctx.lineWidth = 2;
-                    ctx.strokeRect(debugX, debugY, drawWidth, drawHeight);
-
-                    ctx.fillStyle = "#FF6B8B";
-                    ctx.font = "12px monospace";
-                    ctx.fillText(`Rotation: ${(roll * 180 / Math.PI).toFixed(1)}°`, debugX, debugY - 5);
-                }
-            });
-
-            animationFrameRef.current = requestAnimationFrame(draw);
-        };
-
-        draw();
-
-        return () => {
-            if (animationFrameRef.current) {
-                cancelAnimationFrame(animationFrameRef.current);
-            }
-        };
-    }, [filterLoaded, filterScale, filterOffsetX, filterOffsetY, filterPlacement, showDebugOverlay]);
-
     // Get screenshot with filter overlay
     const getScreenshotWithFilter = useCallback(async (): Promise<string | null> => {
         const video = webcamRef.current?.video;
-        const filterCanvas = canvasRef.current;
-        if (!video || !filterCanvas) return null;
+        if (!video || video.videoWidth <= 0 || video.videoHeight <= 0) return null;
 
         // Create a combined canvas
         const outputCanvas = document.createElement("canvas");
@@ -247,51 +150,22 @@ const FaceFilterCamera = forwardRef<FaceFilterCameraHandle, FaceFilterCameraProp
             ctx.filter = "none";
         }
 
-        // Draw filter overlay (scaled to match video dimensions)
-        if (filterLoaded && filterImageRef.current && faces.length > 0) {
-            faces.forEach((face: FaceData) => {
-                const img = filterImageRef.current!;
-                const roll = face.roll ?? face.rotation ?? 0;
-
-                // Get the appropriate region based on filter placement
-                const region = getRegionForPlacement(face, filterPlacement);
-
-                // Mirror coordinates so overlay matches mirrored output
-                const centerX = video.videoWidth - region.centerX;
-                const centerY = region.centerY;
-
-                // Use stable dimensions for rotation-invariant sizing
-                const depthScale = face.depthScale ?? 1;
-                const faceWidth = face.stableWidth * filterScale * depthScale;
-                const faceHeight = face.stableHeight * filterScale * depthScale;
-
-                const imgAspect = img.width / img.height;
-                const faceAspect = faceWidth / faceHeight;
-
-                let drawWidth: number;
-                let drawHeight: number;
-
-                if (imgAspect > faceAspect) {
-                    drawWidth = faceWidth * 1.2;
-                    drawHeight = drawWidth / imgAspect;
-                } else {
-                    drawHeight = faceHeight * 1.2;
-                    drawWidth = drawHeight * imgAspect;
-                }
-
-                // Draw with rotation - offset applied AFTER rotation so it follows face tilt
-                ctx.save();
-                // 1. Translate to mirrored face center
-                ctx.translate(centerX, centerY);
-                // 2. Apply rotation inverted for mirror
-                ctx.rotate(-roll);
-                // 3. Apply offset in rotated coordinate space
-                ctx.translate(-filterOffsetX, filterOffsetY);
-                // 4. Draw image centered at this point
-                ctx.drawImage(img, -drawWidth / 2, -drawHeight / 2, drawWidth, drawHeight);
-                ctx.restore();
-            });
-        }
+        renderFaceFrame({
+            ctx,
+            faces,
+            canvasWidth: outputCanvas.width,
+            canvasHeight: outputCanvas.height,
+            videoWidth: video.videoWidth,
+            videoHeight: video.videoHeight,
+            filterPlacement,
+            filterScale,
+            filterOffsetX,
+            filterOffsetY,
+            filterImage: filterLoaded ? filterImageRef.current : null,
+            mirrorX: true,
+            clearCanvas: false,
+            showDebugOverlay: false,
+        });
 
         return outputCanvas.toDataURL("image/png");
     }, [faces, filterLoaded, filterValue, filterScale, filterOffsetX, filterOffsetY, filterPlacement]);
@@ -338,11 +212,18 @@ const FaceFilterCamera = forwardRef<FaceFilterCameraHandle, FaceFilterCameraProp
                     />
 
                     {/* Face filter overlay canvas */}
-                    <canvas
+                    <FaceFilterRenderer
                         ref={canvasRef}
+                        videoRef={videoElementRef}
+                        faces={faces}
                         width={containerSize.width}
                         height={containerSize.height}
-                        className="absolute inset-0 w-full h-full z-[1] pointer-events-none"
+                        filterImage={filterLoaded ? loadedFilterImage : null}
+                        filterPlacement={filterPlacement}
+                        filterScale={filterScale}
+                        filterOffsetX={filterOffsetX}
+                        filterOffsetY={filterOffsetY}
+                        showDebugOverlay={showDebugOverlay}
                     />
 
                     {/* Loading indicator */}

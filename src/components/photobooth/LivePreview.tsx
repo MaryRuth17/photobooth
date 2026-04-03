@@ -4,13 +4,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { STRIP_W, STRIP_H, STRIP_PAD, STRIP_PHOTO_W, STRIP_PHOTO_H, STRIP_GAP } from "@/lib/constants";
 import type { FrameItem } from "@/hooks/useBoothSettings";
 
-// Responsive preview widths
-const getPreviewDimensions = (): { strip: number; standard: number } => {
-    // These will be overridden by responsive Tailwind classes
-    // Fallback to desktop sizes
-    return { strip: 150, standard: 200 };
-};
-
 function stripPhotoY(i: number) {
     return STRIP_PAD + i * (STRIP_PHOTO_H + STRIP_GAP);
 }

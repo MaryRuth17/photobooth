@@ -246,7 +246,7 @@ const STRIP_GAP = 20;
 const STRIP_FOOTER = 120;
 const STRIP_H = STRIP_PAD + 4 * STRIP_PHOTO_H + 3 * STRIP_GAP + STRIP_FOOTER; // 1310
 
-export { STRIP_W, STRIP_PAD, STRIP_PHOTO_W, STRIP_PHOTO_H, STRIP_GAP, STRIP_FOOTER, STRIP_H };
+export { STRIP_W, STRIP_PAD, STRIP_PHOTO_W, STRIP_PHOTO_H, STRIP_GAP, STRIP_H };
 
 // Helper to build photo cutout rects used across strip frames
 function stripPhotoY(index: number): number {

@@ -3,7 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { LayoutGrid, Sparkles, Image as ImageIcon, Smile, X } from "lucide-react";
 import { LAYOUTS, FILTERS } from "@/lib/constants";
-import { FACE_FILTERS, FaceFilter, PLACEMENT_DEFAULTS } from "@/lib/faceFilters";
+import { FACE_FILTERS, FaceFilter } from "@/lib/faceFilters";
 import type { ActiveTab, FrameItem } from "@/hooks/useBoothSettings";
 
 interface ToolsPanelProps {
