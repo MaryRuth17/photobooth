@@ -1,24 +1,30 @@
-export const STICKER_PALETTE = [
-    { id: "star",      emoji: "⭐" },
-    { id: "heart",     emoji: "❤️" },
-    { id: "sparkle",   emoji: "✨" },
-    { id: "rainbow",   emoji: "🌈" },
-    { id: "flower",    emoji: "🌸" },
-    { id: "butterfly", emoji: "🦋" },
-    { id: "camera",    emoji: "📸" },
-    { id: "ribbon",    emoji: "🎀" },
-    { id: "balloon",   emoji: "🎈" },
-    { id: "moon",      emoji: "🌙" },
-    { id: "sun",       emoji: "☀️" },
-    { id: "gem",       emoji: "💎" },
-    { id: "fire",      emoji: "🔥" },
-    { id: "lips",      emoji: "💋" },
-    { id: "crown",     emoji: "👑" },
-    { id: "clover",    emoji: "🍀" },
+export interface StickerDefinition {
+    id: string;
+    label: string;
+    imageUrl: string;
+    // Fallback glyph used if the image asset cannot be loaded.
+    emoji: string;
+}
+
+export const STICKER_PALETTE: StickerDefinition[] = [
+    {
+        id: "hello-kitty",
+        label: "Hello Kitty",
+        imageUrl: "/stickers/hello-kitty.png",
+        emoji: "🐱",
+    },
+    {
+        id: "finger-heart",
+        label: "Finger Heart",
+        imageUrl: "/stickers/finger-heart.png",
+        emoji: "💖",
+    },
 ];
 
 export interface PlacedSticker {
     id: string;
+    stickerId: string;
+    imageUrl: string;
     emoji: string;
     x: number;
     y: number;

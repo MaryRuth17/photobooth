@@ -133,9 +133,9 @@ export const FACE_FILTERS: FaceFilter[] = [
         id: "flower-forehead",
         name: "Flower Forehead",
         image: "/filters/flower-forehead.svg",
-        scale: 6.3,
+        scale: 6.0,
         offsetX: 0,
-        offsetY: -2,
+        offsetY: 6,
         placement: "forehead",
     },
     {

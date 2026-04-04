@@ -1,5 +1,14 @@
 import { useRef, useState } from "react";
-import type { PlacedSticker } from "@/lib/stickers";
+import type { PlacedSticker, StickerDefinition } from "@/lib/stickers";
+
+const loadImage = (src: string): Promise<HTMLImageElement> => {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = () => reject(new Error(`Failed to load sticker image: ${src}`));
+        img.src = src;
+    });
+};
 
 export function useStudio() {
     const studioCanvasRef = useRef<HTMLDivElement>(null);
@@ -8,7 +17,7 @@ export function useStudio() {
     const [draggingId, setDraggingId] = useState<string | null>(null);
     const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
-    const addSticker = (emoji: string) => {
+    const addSticker = (sticker: StickerDefinition) => {
         const container = studioCanvasRef.current;
         if (!container) return;
         const rect = container.getBoundingClientRect();
@@ -16,7 +25,9 @@ export function useStudio() {
             ...prev,
             {
                 id: `${Date.now()}-${Math.random()}`,
-                emoji,
+                stickerId: sticker.id,
+                imageUrl: sticker.imageUrl,
+                emoji: sticker.emoji,
                 x: rect.width / 2,
                 y: rect.height / 2,
                 size: 52,
@@ -71,12 +82,32 @@ export function useStudio() {
             }
             const baseImg = new Image();
             baseImg.src = capturedImage;
-            baseImg.onload = () => {
+            baseImg.onload = async () => {
                 exportCanvas.width = baseImg.naturalWidth;
                 exportCanvas.height = baseImg.naturalHeight;
                 exportCtx.drawImage(baseImg, 0, 0);
                 const scaleX = baseImg.naturalWidth / rect.width;
                 const scaleY = baseImg.naturalHeight / rect.height;
+
+                const uniqueStickerUrls = Array.from(
+                    new Set(
+                        stickers
+                            .map(s => s.imageUrl)
+                            .filter((url): url is string => Boolean(url))
+                    )
+                );
+                const stickerImages = new Map<string, HTMLImageElement>();
+                await Promise.all(
+                    uniqueStickerUrls.map(async url => {
+                        try {
+                            const image = await loadImage(url);
+                            stickerImages.set(url, image);
+                        } catch {
+                            // Ignore; this sticker will use emoji fallback during export.
+                        }
+                    })
+                );
+
                 stickers.forEach(s => {
                     const cx = s.x * scaleX;
                     const cy = s.y * scaleY;
@@ -84,10 +115,17 @@ export function useStudio() {
                     exportCtx.save();
                     exportCtx.translate(cx, cy);
                     exportCtx.rotate((s.rotation * Math.PI) / 180);
-                    exportCtx.font = `${sz}px serif`;
-                    exportCtx.textAlign = "center";
-                    exportCtx.textBaseline = "middle";
-                    exportCtx.fillText(s.emoji, 0, 0);
+
+                    const stickerImage = stickerImages.get(s.imageUrl);
+                    if (stickerImage) {
+                        exportCtx.drawImage(stickerImage, -sz / 2, -sz / 2, sz, sz);
+                    } else {
+                        exportCtx.font = `${sz}px serif`;
+                        exportCtx.textAlign = "center";
+                        exportCtx.textBaseline = "middle";
+                        exportCtx.fillText(s.emoji, 0, 0);
+                    }
+
                     exportCtx.restore();
                 });
                 const dataUrl = exportCanvas.toDataURL("image/png");

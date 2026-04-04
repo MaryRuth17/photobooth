@@ -4,7 +4,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Download, Wand2, ChevronLeft } from "lucide-react";
 import { STICKER_PALETTE } from "@/lib/stickers";
-import type { PlacedSticker } from "@/lib/stickers";
+import type { PlacedSticker, StickerDefinition } from "@/lib/stickers";
 import { STRIP_W, STRIP_H } from "@/lib/constants";
 
 interface StudioScreenProps {
@@ -14,7 +14,7 @@ interface StudioScreenProps {
     studioCanvasRef: React.RefObject<HTMLDivElement | null>;
     stickers: PlacedSticker[];
     draggingId: string | null;
-    onAddSticker: (emoji: string) => void;
+    onAddSticker: (sticker: StickerDefinition) => void;
     onRemoveSticker: (id: string) => void;
     onStickerPointerDown: (e: React.PointerEvent, id: string) => void;
     onStickerPointerMove: (e: React.PointerEvent) => void;
@@ -34,6 +34,13 @@ export default function StudioScreen({
     const [isExporting, setIsExporting] = useState(false);
     const [showSavePrompt, setShowSavePrompt] = useState(false);
     const [exportedImage, setExportedImage] = useState<string | null>(null);
+    const [brokenImages, setBrokenImages] = useState<Record<string, boolean>>({});
+
+    const markBrokenImage = (imageUrl: string) => {
+        setBrokenImages(prev => (prev[imageUrl] ? prev : { ...prev, [imageUrl]: true }));
+    };
+
+    const isImageBroken = (imageUrl: string) => Boolean(brokenImages[imageUrl]);
 
     const handleDownload = async () => {
         if (isExporting) return;
@@ -185,11 +192,24 @@ export default function StudioScreen({
                                 <motion.button
                                     key={s.id}
                                     whileHover={{ scale: 1.2, y: -3 }} whileTap={{ scale: 0.9 }}
-                                    onClick={() => onAddSticker(s.emoji)}
-                                    className="aspect-square text-2xl flex items-center justify-center rounded-xl hover:bg-zinc-50 transition-colors select-none"
-                                    title={`Add ${s.id}`}
+                                    onClick={() => onAddSticker(s)}
+                                    className="aspect-square flex items-center justify-center rounded-xl hover:bg-zinc-50 transition-colors select-none overflow-hidden"
+                                    title={`Add ${s.label}`}
                                 >
-                                    {s.emoji}
+                                    {isImageBroken(s.imageUrl) ? (
+                                        <span className="text-2xl leading-none">{s.emoji}</span>
+                                    ) : (
+                                        <>
+                                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                                            <img
+                                                src={s.imageUrl}
+                                                alt={s.label}
+                                                className="w-full h-full object-contain p-1"
+                                                draggable={false}
+                                                onError={() => markBrokenImage(s.imageUrl)}
+                                            />
+                                        </>
+                                    )}
                                 </motion.button>
                             ))}
                         </div>
@@ -206,10 +226,23 @@ export default function StudioScreen({
                             <motion.button
                                 key={s.id}
                                 whileTap={{ scale: 0.9 }}
-                                onClick={() => onAddSticker(s.emoji)}
-                                className="text-2xl shrink-0 w-10 h-10 flex items-center justify-center rounded-xl bg-white border border-zinc-100 shadow-sm select-none"
+                                onClick={() => onAddSticker(s)}
+                                className="shrink-0 w-12 h-12 flex items-center justify-center rounded-xl bg-white border border-zinc-100 shadow-sm select-none overflow-hidden"
                             >
-                                {s.emoji}
+                                {isImageBroken(s.imageUrl) ? (
+                                    <span className="text-xl leading-none">{s.emoji}</span>
+                                ) : (
+                                    <>
+                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                        <img
+                                            src={s.imageUrl}
+                                            alt={s.label}
+                                            className="w-full h-full object-contain p-1"
+                                            draggable={false}
+                                            onError={() => markBrokenImage(s.imageUrl)}
+                                        />
+                                    </>
+                                )}
                             </motion.button>
                         ))}
                     </div>
@@ -241,15 +274,33 @@ export default function StudioScreen({
                                 style={{
                                     left: s.x,
                                     top: s.y,
+                                    width: s.size,
+                                    height: s.size,
                                     transform: `translate(-50%, -50%) rotate(${s.rotation}deg)`,
-                                    fontSize: s.size,
-                                    lineHeight: 1,
                                     userSelect: "none",
                                     zIndex: draggingId === s.id ? 50 : 10,
                                 }}
                                 onPointerDown={e => onStickerPointerDown(e, s.id)}
                             >
-                                {s.emoji}
+                                {isImageBroken(s.imageUrl) ? (
+                                    <span
+                                        className="block w-full h-full text-center leading-none"
+                                        style={{ fontSize: s.size }}
+                                    >
+                                        {s.emoji}
+                                    </span>
+                                ) : (
+                                    <>
+                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                        <img
+                                            src={s.imageUrl}
+                                            alt=""
+                                            className="w-full h-full object-contain pointer-events-none select-none"
+                                            draggable={false}
+                                            onError={() => markBrokenImage(s.imageUrl)}
+                                        />
+                                    </>
+                                )}
                                 <button
                                     className="absolute -top-3 -right-3 w-5 h-5 rounded-full bg-foreground text-background flex items-center justify-center text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-opacity shadow-md z-50"
                                     onPointerDown={e => { e.stopPropagation(); onRemoveSticker(s.id); }}
