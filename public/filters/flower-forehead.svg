@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <radialGradient id="petalPink" cx="50%" cy="40%" r="65%">
+      <stop offset="0%" stop-color="#ffd7ef"/>
+      <stop offset="65%" stop-color="#ff9fe0"/>
+      <stop offset="100%" stop-color="#ff66cf"/>
+    </radialGradient>
+    <radialGradient id="flowerCore" cx="50%" cy="50%" r="60%">
+      <stop offset="0%" stop-color="#ff6bc4"/>
+      <stop offset="100%" stop-color="#e530a2"/>
+    </radialGradient>
+    <filter id="softGlow" x="-40%" y="-40%" width="180%" height="180%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="0" stdDeviation="5" flood-color="#ff6ac9" flood-opacity="0.65"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="2" flood-color="#ffffff" flood-opacity="0.45"/>
+    </filter>
+    <g id="flowerShape">
+      <ellipse cx="0" cy="-12" rx="10" ry="18" fill="url(#petalPink)"/>
+      <ellipse cx="11" cy="-3" rx="10" ry="18" transform="rotate(64 11 -3)" fill="url(#petalPink)"/>
+      <ellipse cx="7" cy="10" rx="10" ry="18" transform="rotate(132 7 10)" fill="url(#petalPink)"/>
+      <ellipse cx="-7" cy="10" rx="10" ry="18" transform="rotate(-132 -7 10)" fill="url(#petalPink)"/>
+      <ellipse cx="-11" cy="-3" rx="10" ry="18" transform="rotate(-64 -11 -3)" fill="url(#petalPink)"/>
+      <circle cx="0" cy="0" r="8" fill="url(#flowerCore)"/>
+    </g>
+  </defs>
+
+  <g filter="url(#softGlow)" opacity="0.98">
+    <g transform="translate(138 184) rotate(-26)">
+      <use href="#flowerShape"/>
+    </g>
+    <g transform="translate(106 154) rotate(-14) scale(0.95)">
+      <use href="#flowerShape"/>
+    </g>
+    <g transform="translate(168 150) rotate(-36) scale(0.9)">
+      <use href="#flowerShape"/>
+    </g>
+    <g transform="translate(86 212) rotate(-30) scale(0.8)">
+      <use href="#flowerShape"/>
+    </g>
+    <g transform="translate(184 198) rotate(-18) scale(0.78)">
+      <use href="#flowerShape"/>
+    </g>
+    <g transform="translate(76 246) rotate(-16) scale(0.62)">
+      <use href="#flowerShape"/>
+    </g>
+
+    <g transform="translate(374 184) rotate(26)">
+      <use href="#flowerShape"/>
+    </g>
+    <g transform="translate(406 154) rotate(14) scale(0.95)">
+      <use href="#flowerShape"/>
+    </g>
+    <g transform="translate(344 150) rotate(36) scale(0.9)">
+      <use href="#flowerShape"/>
+    </g>
+    <g transform="translate(426 212) rotate(30) scale(0.8)">
+      <use href="#flowerShape"/>
+    </g>
+    <g transform="translate(328 198) rotate(18) scale(0.78)">
+      <use href="#flowerShape"/>
+    </g>
+    <g transform="translate(436 246) rotate(16) scale(0.62)">
+      <use href="#flowerShape"/>
+    </g>
+  </g>
+</svg>
